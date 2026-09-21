@@ -1,0 +1,20 @@
+<table class="ranking">
+    <thead>
+        <tr>
+            <th>Место</th>
+            <th>Команда</th>
+            {% if has_city %}<th>Город</th>{% endif %}
+            <th>Сумма</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.place }}</td>
+            <td>{{ row.team }}</td>
+            {% if has_city %}<td>{{ row.city }}</td>{% endif %}
+            <td>{{ row.points }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

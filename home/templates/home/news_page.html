@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block body_class %}news-page{% endblock %}
+
+{% block content %}
+<article class="page">
+    <p class="when"><time datetime="{{ page.date|date:'Y-m-d' }}">{{ page.date|date:"d E Y" }}</time></p>
+    <h1>{{ page.title }}</h1>
+    <div class="prose">{{ page.body|richtext }}</div>
+    {% if page.get_parent %}
+        <p class="back"><a href="{% pageurl page.get_parent %}">Ко всем новостям</a></p>
+    {% endif %}
+</article>
+{% endblock %}

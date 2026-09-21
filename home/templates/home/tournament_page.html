@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}tournament-page{% endblock %}
+
+{% block content %}
+<article class="page season">
+    <p class="back"><a href="{% pageurl page.get_parent %}">Все сезоны</a></p>
+    {% if page.is_current %}
+        <p class="season-mark">Текущий сезон</p>
+    {% endif %}
+    <h1>{{ page.display_title }}</h1>
+    {% if page.date_start or page.city %}
+    <p class="when">{% if page.date_start and page.date_end %}{{ page.date_start|date:"d.m.Y" }} — {{ page.date_end|date:"d.m.Y" }}{% elif page.date_start %}{{ page.date_start|date:"d.m.Y" }}{% endif %}{% if page.city %}{% if page.date_start %}, {% endif %}{{ page.city }}{% endif %}</p>
+    {% endif %}
+
+    {% if problems or ranking or finals or league_a or league_b or finals_b or has_iypt or page.results_more_url or has_photos or report_links or news_links %}
+    <div class="season-switch" data-season-tabs>
+        <div class="season-tabs" role="tablist" aria-label="Разделы сезона">
+            {% if problems %}
+            <button type="button" class="season-tab" role="tab" id="tab-zadachi" aria-controls="panel-zadachi" aria-selected="true" data-tab="zadachi">
+                <span class="radio" aria-hidden="true"></span>
+                Задачи
+            </button>
+            {% endif %}
+            {% if ranking or finals or league_a or league_b or finals_b or page.results_more_url %}
+            <button type="button" class="season-tab" role="tab" id="tab-rezultaty" aria-controls="panel-rezultaty" aria-selected="false" data-tab="rezultaty" tabindex="-1">
+                <span class="radio" aria-hidden="true"></span>
+                Результаты
+            </button>
+            {% endif %}
+            {% if has_iypt %}
+            <button type="button" class="season-tab" role="tab" id="tab-iypt" aria-controls="panel-iypt" aria-selected="false" data-tab="iypt" tabindex="-1">
+                <span class="radio" aria-hidden="true"></span>
+                IYPT
+            </button>
+            {% endif %}
+            {% if has_photos %}
+            <button type="button" class="season-tab" role="tab" id="tab-foto" aria-controls="panel-foto" aria-selected="false" data-tab="foto" tabindex="-1">
+                <span class="radio" aria-hidden="true"></span>
+                Фото
+            </button>
+            {% endif %}
+            {% if report_links or news_links %}
+            <button type="button" class="season-tab" role="tab" id="tab-materialy" aria-controls="panel-materialy" aria-selected="false" data-tab="materialy" tabindex="-1">
+                <span class="radio" aria-hidden="true"></span>
+                Материалы
+            </button>
+            {% endif %}
+        </div>
+
+        {% if problems %}
+        <section class="season-panel" role="tabpanel" id="panel-zadachi" aria-labelledby="tab-zadachi">
+            <ol class="problems">
+                {% for item in problems %}
+                <li>
+                    <h2>{{ item.number }}. {{ item.title }}</h2>
+                    <p>{{ item.statement|linebreaksbr }}</p>
+                </li>
+                {% endfor %}
+            </ol>
+        </section>
+        {% endif %}
+
+        {% if ranking or finals or league_a or league_b or finals_b or page.results_more_url %}
+        <section class="season-panel" role="tabpanel" id="panel-rezultaty" aria-labelledby="tab-rezultaty" hidden>
+            {% if has_leagues %}
+            <div class="results-split results-split--three">
+                {% if ranking %}
+                <div>
+                    <h2>Общий рейтинг</h2>
+                    {% include "home/includes/ranking_table.html" with rows=ranking has_city=ranking_has_city %}
+                </div>
+                {% endif %}
+                {% if league_a or league_b %}
+                <div>
+                    <h2>Рейтинг по лигам</h2>
+                    {% if league_a %}
+                    <h3>Высшая лига</h3>
+                    {% include "home/includes/ranking_table.html" with rows=league_a has_city=league_a_has_city %}
+                    {% endif %}
+                    {% if league_b %}
+                    <h3>Первая лига</h3>
+                    {% include "home/includes/ranking_table.html" with rows=league_b has_city=league_b_has_city %}
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if finals or finals_b %}
+                <div>
+                    <h2>Финалы</h2>
+                    {% if finals %}
+                    <h3>Финал высшей лиги</h3>
+                    {% include "home/includes/ranking_table.html" with rows=finals has_city=finals_has_city %}
+                    {% endif %}
+                    {% if finals_b %}
+                    <h3>Финал первой лиги</h3>
+                    {% include "home/includes/ranking_table.html" with rows=finals_b has_city=finals_b_has_city %}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% elif finals or ranking %}
+            <div class="results-split">
+                {% if finals %}
+                <div>
+                    <h2>Финал</h2>
+                    {% include "home/includes/ranking_table.html" with rows=finals has_city=finals_has_city %}
+                </div>
+                {% endif %}
+                {% if ranking %}
+                <div>
+                    <h2>Итог отборочных боёв</h2>
+                    {% include "home/includes/ranking_table.html" with rows=ranking has_city=ranking_has_city %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if ranking or finals or league_a or league_b or finals_b %}
+                {% if page.results_more_url %}
+                <p class="prose"><a href="{{ page.results_more_url }}" rel="noreferrer">{{ page.results_more_label|default:"Оригинал" }}</a></p>
+                {% endif %}
+            {% elif page.results_more_url %}
+            <p class="prose">Итоговой таблицы пока нет. Оригинал — <a href="{{ page.results_more_url }}" rel="noreferrer">{{ page.results_more_label|default:"по ссылке" }}</a>.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if has_iypt %}
+        <section class="season-panel" role="tabpanel" id="panel-iypt" aria-labelledby="tab-iypt" hidden>
+            {% if page.iypt_team or page.iypt_more_url %}
+            <div class="when iypt">
+                {% if page.iypt_team %}
+                <p>{{ page.iypt_team|linebreaksbr }}</p>
+                {% endif %}
+                {% if page.iypt_more_url %}
+                <p class="prose">Подробную таблицу можно посмотреть <a href="{{ page.iypt_more_url }}" rel="noreferrer">здесь</a>.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if has_iypt_tables %}
+            <div class="results-split">
+                {% if iypt_ranking %}
+                <div>
+                    <h2>Рейтинг команд</h2>
+                    {% include "home/includes/ranking_table.html" with rows=iypt_ranking has_city=iypt_ranking_has_city %}
+                </div>
+                {% endif %}
+                {% if iypt_final %}
+                <div>
+                    <h2>Финал</h2>
+                    {% include "home/includes/ranking_table.html" with rows=iypt_final has_city=iypt_final_has_city %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if has_photos %}
+        <section class="season-panel" role="tabpanel" id="panel-foto" aria-labelledby="tab-foto" hidden>
+            <div class="photo-studio" data-photo-studio>
+                {% if photos %}
+                <div class="photo-album-actions" role="tablist" aria-label="Как смотреть альбом">
+                    <button type="button" class="photo-album-btn is-on" data-album-view="carousel" aria-selected="true">Карусель</button>
+                    <button type="button" class="photo-album-btn" data-album-view="grid" aria-selected="false">Все сразу</button>
+                </div>
+                <div class="photo-stage" data-album-pane="carousel">
+                    <div class="photo-hero">
+                        <button type="button" class="photo-nav photo-prev" aria-label="Предыдущее фото"></button>
+                        <figure class="photo-frame">
+                            <img alt="" decoding="async" referrerpolicy="no-referrer">
+                            <figcaption></figcaption>
+                        </figure>
+                        <button type="button" class="photo-nav photo-next" aria-label="Следующее фото"></button>
+                    </div>
+                    <p class="photo-count">
+                        <span data-photo-count></span>
+                        <a data-photo-original href="{{ photos.0.original }}" rel="noreferrer">Оригинал</a>
+                    </p>
+                </div>
+                <ul class="photo-grid" data-album-pane="grid" hidden>
+                    {% for shot in photos %}
+                    <li>
+                        <button type="button" class="photo-thumb" data-src="{{ shot.src }}" data-original="{{ shot.original }}" data-caption="{{ shot.caption }}" aria-label="Фото {{ forloop.counter }}">
+                            {% if shot.image %}
+                                {% image shot.image fill-320x240 %}
+                            {% else %}
+                                <img src="{{ shot.thumb_src }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+                            {% endif %}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if album_urls %}
+                <p class="photo-album-fallback">
+                    {% if album_urls|length == 1 %}
+                    <a href="{{ album_urls.0 }}" rel="noreferrer">Оригинал альбома</a>
+                    {% else %}
+                    Оригиналы альбомов:
+                    {% for url in album_urls %}
+                    <a href="{{ url }}" rel="noreferrer">{{ forloop.counter }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </p>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if report_links or news_links %}
+        <section class="season-panel" role="tabpanel" id="panel-materialy" aria-labelledby="tab-materialy" hidden>
+            {% if report_links %}
+            <h2>Отчёты</h2>
+            <ul class="prose">
+                {% for item in report_links %}
+                <li><a href="{{ item.url }}" rel="noreferrer">{{ item.title }}</a></li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if news_links %}
+            <h2>Новости сезона</h2>
+            <ul class="prose">
+                {% for item in news_links %}
+                <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+    {% endif %}
+</article>
+{% endblock %}

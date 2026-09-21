@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block body_class %}tournaments-index{% endblock %}
+
+{% block content %}
+<article class="page seasons">
+    <h1>{{ page.title }}</h1>
+    {% if page.intro %}
+        <div class="prose">{{ page.intro|richtext }}</div>
+    {% endif %}
+    {% include "home/includes/season_list.html" %}
+</article>
+{% endblock %}

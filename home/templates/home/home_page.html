@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Российский Турнир Юных Физиков{% endblock %}
+{% block title_suffix %}{% endblock %}
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-stage">
+        <img
+            class="hero-emblem"
+            src="{% static 'img/emblem.png' %}"
+            width="1276"
+            height="1004"
+            alt=""
+        >
+        <h1 class="hero-title">Российский Турнир Юных Физиков</h1>
+    </div>
+</section>
+{% endblock %}

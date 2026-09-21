@@ -1,0 +1,22 @@
+{% load wagtailcore_tags %}
+<ol class="season-list">
+    {% if current %}
+        <li class="season-card is-current">
+            <a href="{% pageurl current %}">
+                <span class="season-mark">Текущий сезон</span>
+                <strong>{{ current.display_title }}</strong>
+                <span class="season-city">{% if current.city %}{{ current.city }}{% endif %}</span>
+            </a>
+        </li>
+    {% endif %}
+    {% for season in seasons %}
+        {% if not season.is_current %}
+        <li class="season-card">
+            <a href="{% pageurl season %}">
+                <strong>{{ season.display_title }}</strong>
+                <span class="season-city">{% if season.city %}{{ season.city }}{% endif %}</span>
+            </a>
+        </li>
+        {% endif %}
+    {% endfor %}
+</ol>

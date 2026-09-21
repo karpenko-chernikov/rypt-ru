@@ -1,0 +1,131 @@
+{% load static wagtailcore_tags wagtailuserbar %}
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>
+            {% block title %}
+                {% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}
+            {% endblock %}
+            {% block title_suffix %} — Российский Турнир Юных Физиков{% endblock %}
+        </title>
+        {% if page.search_description %}
+            <meta name="description" content="{{ page.search_description }}" />
+        {% endif %}
+        {% if request.in_preview_panel %}
+            <base target="_blank">
+        {% endif %}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans:wght@700;800&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="icon" href="{% static 'img/favicon.ico' %}" sizes="any">
+        <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon.png' %}" media="(prefers-color-scheme: light)">
+        <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-dark.png' %}" media="(prefers-color-scheme: dark)">
+        <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+        <link rel="stylesheet" href="{% static 'css/rypt.css' %}">
+        <script>
+            (function () {
+                try {
+                    var t = localStorage.getItem("rypt-theme");
+                    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+                } catch (e) {}
+            })();
+        </script>
+    </head>
+    <body class="{% block body_class %}{% endblock %}">
+        {% wagtailuserbar %}
+        <div class="atmosphere" aria-hidden="true">
+            <span class="atmosphere-wash"></span>
+            <span class="spot s1"></span>
+            <span class="spot s2"></span>
+            <span class="spot s3"></span>
+            <span class="spot s4"></span>
+        </div>
+        <div class="preloader" aria-hidden="true">
+            <span class="orb orb-solid preloader-orb"></span>
+        </div>
+        <a class="skip" href="#main">К содержанию</a>
+        <header class="chrome">
+            <a class="brand" href="/" aria-label="На главную">
+                <span class="orb orb-solid"></span>
+            </a>
+            <button class="theme" type="button" aria-label="Сменить тему">
+                <span class="orb orb-empty"></span>
+            </button>
+        </header>
+        {% if is_deck %}
+            <button class="flip flip-prev" type="button" aria-label="Предыдущий раздел"></button>
+            <button class="flip flip-next" type="button" aria-label="Следующий раздел"></button>
+        {% endif %}
+        <main id="main">
+            {% if is_deck %}
+                <div class="deck-view">
+                    <div class="deck" data-index="{{ slide_index }}">
+                        {% for slide in slides %}
+                            <section class="slide" data-url="{{ slide.url }}" data-title="{% if slide.kind == 'home' %}Российский Турнир Юных Физиков{% else %}{{ slide.title }} — Российский Турнир Юных Физиков{% endif %}">
+                                {% if slide.kind == 'home' %}
+                                    <section class="hero">
+                                        <div class="hero-stage">
+                                            <img
+                                                class="hero-emblem"
+                                                src="{% static 'img/emblem.png' %}"
+                                                width="1276"
+                                                height="1004"
+                                                alt=""
+                                            >
+                                            <h1 class="hero-title">Российский Турнир Юных Физиков</h1>
+                                        </div>
+                                    </section>
+                                {% else %}
+                                    <article class="page">
+                                        <h1>{{ slide.title }}</h1>
+                                        {% if slide.kind == 'news' %}
+                                            {% if slide.intro %}
+                                                <div class="prose">{{ slide.intro|richtext }}</div>
+                                            {% endif %}
+                                            {% if slide.news %}
+                                            <ol class="notices">
+                                                {% for item in slide.news %}
+                                                <li>
+                                                    <time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:"d.m.Y" }}</time>
+                                                    <a href="{% pageurl item %}">{{ item.title }}</a>
+                                                </li>
+                                                {% endfor %}
+                                            </ol>
+                                            {% endif %}
+                                        {% elif slide.kind == 'tournaments' %}
+                                            {% include "home/includes/season_list.html" with current=slide.current seasons=slide.seasons %}
+                                        {% elif slide.body %}
+                                            <div class="prose">{{ slide.body|richtext }}</div>
+                                        {% endif %}
+                                    </article>
+                                {% endif %}
+                            </section>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                {% block content %}{% endblock %}
+            {% endif %}
+        </main>
+        <nav class="rail" aria-label="Разделы сайта">
+            <div class="rail-glass">
+                <div class="rail-bar">
+                {% for slide in slides %}
+                    <a href="{{ slide.url }}" class="{% if slide.is_now %}is-now{% endif %}" data-slide="{{ forloop.counter0 }}">
+                        <span class="radio" aria-hidden="true"></span>
+                        {{ slide.title }}
+                    </a>
+                {% endfor %}
+                <a href="{{ nav_old_site }}" rel="noreferrer">
+                    <span class="radio" aria-hidden="true"></span>
+                    Старый сайт
+                </a>
+                </div>
+            </div>
+        </nav>
+        <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+        <script src="{% static 'js/rypt.js' %}"></script>
+    </body>
+</html>
