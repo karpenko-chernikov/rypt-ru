@@ -1,0 +1,16 @@
+{% extends "editor/base.html" %}
+{% block title %}Скан{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:season_problems' page.year %}">← Задачи</a></p>
+<h1 class="editor-h1">Загрузить скан</h1>
+<p class="editor-lead">Одна картинка — страница. Две — разворот (левая и правая полосы).</p>
+<form method="post" class="editor-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for field in form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% endfor %}
+    <p style="margin-top:1.2rem"><button type="submit" class="editor-btn editor-btn-primary">Загрузить</button></p>
+</form>
+{% endblock %}

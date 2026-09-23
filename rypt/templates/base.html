@@ -1,4 +1,4 @@
-{% load static wagtailcore_tags wagtailuserbar %}
+        {% load static wagtailcore_tags %}
 <!DOCTYPE html>
 <html lang="ru" data-theme="dark">
     <head>
@@ -34,7 +34,6 @@
         </script>
     </head>
     <body class="{% block body_class %}{% endblock %}">
-        {% wagtailuserbar %}
         <div class="atmosphere" aria-hidden="true">
             <span class="atmosphere-wash"></span>
             <span class="spot s1"></span>
@@ -96,6 +95,8 @@
                                             {% endif %}
                                         {% elif slide.kind == 'tournaments' %}
                                             {% include "home/includes/season_list.html" with current=slide.current seasons=slide.seasons %}
+                                        {% elif slide.kind == 'russia' %}
+                                            {% include "home/includes/russia_map.html" with intro=slide.intro svg=slide.svg regions_json=slide.regions_json region_names_json=slide.region_names_json %}
                                         {% elif slide.body %}
                                             <div class="prose">{{ slide.body|richtext }}</div>
                                         {% endif %}

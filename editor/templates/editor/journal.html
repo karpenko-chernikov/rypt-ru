@@ -1,0 +1,40 @@
+{% extends "editor/base.html" %}
+{% block title %}Журнал{% endblock %}
+{% block content %}
+<h1 class="editor-h1">Журнал правок</h1>
+<p class="editor-lead">Кто что менял в кабинете.</p>
+
+<form method="get" class="editor-form" style="margin-bottom:1.5rem">
+    <label for="id_year">Сезон (год)</label>
+    <select name="year" id="id_year">
+        <option value="">Все</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if filter_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    <label for="id_author">Автор (логин)</label>
+    <input type="text" name="author" id="id_author" value="{{ filter_author }}">
+    <p style="margin-top:1rem"><button type="submit" class="editor-btn">Фильтр</button></p>
+</form>
+
+{% if entries %}
+<ul class="editor-list">
+    {% for e in entries %}
+    <li>
+        <div>
+            <a href="{% url 'editor:journal_detail' e.pk %}">
+                <strong>{{ e.created_at|date:"d.m.Y H:i" }}</strong>
+                · {% if e.user %}{{ e.user.username }}{% else %}—{% endif %}
+                · {{ e.object_label|default:e.object_type }}
+                · {{ e.get_tab_display }}
+            </a>
+            <div style="color:var(--muted);font-size:0.9rem">{{ e.summary }}</div>
+        </div>
+        <span class="editor-badge">{{ e.get_action_display }}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="editor-empty">Записей пока нет.</p>
+{% endif %}
+{% endblock %}

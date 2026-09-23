@@ -1,0 +1,57 @@
+{% extends "editor/base.html" %}
+{% block title %}Задачи · {{ page.display_title }}{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:season_detail' page.year %}">← {{ page.display_title }}</a></p>
+<h1 class="editor-h1">Задачи</h1>
+
+<section class="editor-section">
+    <h2>Тексты задач</h2>
+    {% if problems %}
+    <table class="editor-table">
+        <thead><tr><th>№</th><th>Название</th><th></th></tr></thead>
+        <tbody>
+        {% for p in problems %}
+        <tr>
+            <td>{{ p.number }}</td>
+            <td>{{ p.title }}</td>
+            <td>
+                <a class="editor-btn" href="{% url 'editor:problem_edit' page.year p.pk %}">Изменить</a>
+                <form method="post" action="{% url 'editor:problem_delete' page.year p.pk %}" style="display:inline" onsubmit="return confirm('Удалить?');">
+                    {% csrf_token %}
+                    <button type="submit" class="editor-btn editor-btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="editor-empty">Задач пока нет. Добавьте первую — на сайте появится вкладка «Задачи».</div>
+    {% endif %}
+    <a class="editor-btn editor-btn-primary" href="{% url 'editor:problem_add' page.year %}">Добавить задачу</a>
+</section>
+
+<section class="editor-section">
+    <h2>Сканы</h2>
+    {% if scans %}
+    <ul class="editor-list">
+        {% for s in scans %}
+        <li>
+            <div>
+                {% if s.caption %}{{ s.caption }}{% else %}Скан {{ forloop.counter }}{% endif %}
+                {% if s.is_spread %}<span class="editor-badge">разворот</span>{% endif %}
+                <img class="editor-thumb" src="{{ s.image.file.url }}" alt="">
+            </div>
+            <form method="post" action="{% url 'editor:scan_delete' page.year s.pk %}" onsubmit="return confirm('Удалить скан?');">
+                {% csrf_token %}
+                <button type="submit" class="editor-btn editor-btn-danger">Удалить</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="editor-empty">Сканов нет.</div>
+    {% endif %}
+    <a class="editor-btn" href="{% url 'editor:scan_add' page.year %}">Загрузить скан / разворот</a>
+</section>
+{% endblock %}

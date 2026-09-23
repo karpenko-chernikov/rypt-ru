@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Кабинет{% endblock %} — RYPT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans:wght@700;800&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/rypt.css' %}">
+    <link rel="stylesheet" href="{% static 'css/editor.css' %}">
+</head>
+<body class="editor-body">
+    <header class="editor-top">
+        <a class="editor-brand" href="{% url 'editor:dashboard' %}">Кабинет RYPT</a>
+        <nav class="editor-nav">
+            {% if user.is_authenticated %}
+            <a href="{% url 'editor:dashboard' %}">Сезоны</a>
+            <a href="{% url 'editor:russia_list' %}">Россия</a>
+            <a href="{% url 'editor:invites' %}">Приглашения</a>
+            <a href="{% url 'editor:journal' %}">Журнал</a>
+            <a href="/" target="_blank" rel="noreferrer">Сайт</a>
+            <span class="editor-user">{{ user.username }}</span>
+            <a href="{% url 'editor:logout' %}">Выйти</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main class="editor-main">
+        {% if messages %}
+        <ul class="editor-messages">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

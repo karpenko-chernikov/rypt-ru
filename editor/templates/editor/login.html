@@ -1,0 +1,17 @@
+{% extends "editor/base.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<h1 class="editor-h1">Вход в кабинет</h1>
+<p class="editor-lead">Публичного входа на сайте нет. Сюда попадают только по прямой ссылке.</p>
+<form method="post" class="editor-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <label for="id_username">{{ form.username.label }}</label>
+    {{ form.username }}
+    {{ form.username.errors }}
+    <label for="id_password">{{ form.password.label }}</label>
+    {{ form.password }}
+    {{ form.password.errors }}
+    <p style="margin-top:1.2rem"><button type="submit" class="editor-btn editor-btn-primary">Войти</button></p>
+</form>
+{% endblock %}

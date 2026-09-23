@@ -1,0 +1,31 @@
+{% extends "editor/base.html" %}
+{% block title %}Турниры в России{% endblock %}
+{% block content %}
+<h1 class="editor-h1">Турниры в России</h1>
+<p class="editor-lead">Регионы с турниром подсвечиваются на карте. Карточка справа — из этих записей.</p>
+<div class="editor-actions">
+    <a class="editor-btn editor-btn-primary" href="{% url 'editor:russia_add' %}">Добавить регион</a>
+    <a class="editor-btn" href="/russia/" target="_blank" rel="noreferrer">Открыть карту</a>
+</div>
+<section class="editor-section">
+    {% if regions %}
+    <ul class="editor-list">
+        {% for r in regions %}
+        <li>
+            <div>
+                {% if r.has_tournament %}<span class="editor-badge">На карте</span>{% endif %}
+                <a href="{% url 'editor:russia_edit' r.pk %}"><strong>{{ r.region_name }}</strong></a>
+                <span class="editor-muted"> · {{ r.title }}</span>
+            </div>
+            <form method="post" action="{% url 'editor:russia_delete' r.pk %}" onsubmit="return confirm('Удалить регион с карты?');">
+                {% csrf_token %}
+                <button type="submit" class="editor-btn">Удалить</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="editor-empty">Пока нет регионов. Добавьте первый — он появится золотым на карте.</p>
+    {% endif %}
+</section>
+{% endblock %}

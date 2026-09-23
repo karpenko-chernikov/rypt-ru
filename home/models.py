@@ -1,12 +1,19 @@
 import html as html_lib
+import json
 import re
+from pathlib import Path
 
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from modelcluster.fields import ParentalKey
+from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.fields import RichTextField
 from wagtail.models import Orderable, Page
+from wagtail.rich_text import expand_db_html
+
+from home.regions import REGION_CHOICES, REGIONS
 
 
 def ranking_score(row):
@@ -183,7 +190,12 @@ class TournamentPage(Page):
         blank=True,
         default="Оригинал",
     )
-    results_more_url = models.URLField("Подробные результаты, ссылка", blank=True)
+    results_more_url = models.CharField(
+        "Подробные результаты, ссылка или файл",
+        max_length=500,
+        blank=True,
+        help_text="Внешняя ссылка (https://…) или путь к файлу (/media/…).",
+    )
     results_more_label = models.CharField(
         "Подпись к ссылке на результаты",
         max_length=160,
@@ -217,6 +229,7 @@ class TournamentPage(Page):
             heading="IYPT",
         ),
         InlinePanel("problems", label="Задачи"),
+        InlinePanel("problem_scans", label="Сканы задач (страница / разворот)"),
         InlinePanel("ranking", label="Итоговая таблица"),
         MultiFieldPanel(
             [
@@ -270,6 +283,8 @@ class TournamentPage(Page):
     def get_context(self, request):
         context = super().get_context(request)
         context["problems"] = self.problems.all().order_by("number")
+        context["problem_scans"] = list(self.problem_scans.all())
+        context["has_problem_scans"] = bool(context["problem_scans"])
         rows = list(self.ranking.all())
         by_kind = {}
         for row in rows:
@@ -285,6 +300,13 @@ class TournamentPage(Page):
         context["finals_b"] = table(TournamentResultRow.KIND_FINAL_B)
         context["iypt_ranking"] = table(TournamentResultRow.KIND_IYPT_RANKING)
         context["iypt_final"] = table(TournamentResultRow.KIND_IYPT_FINAL)
+        context["has_result_tables"] = bool(
+            context["ranking"]
+            or context["league_a"]
+            or context["league_b"]
+            or context["finals"]
+            or context["finals_b"]
+        )
         context["has_leagues"] = bool(
             context["league_a"] or context["league_b"] or context["finals_b"]
         )
@@ -317,6 +339,37 @@ class TournamentProblem(Orderable):
     statement = models.TextField("Условие")
 
     panels = [FieldPanel("number"), FieldPanel("title"), FieldPanel("statement")]
+
+
+class TournamentProblemScan(Orderable):
+    """Скан страницы или разворота условий (без чужих турниров на одном кадре)."""
+
+    page = ParentalKey(TournamentPage, on_delete=models.CASCADE, related_name="problem_scans")
+    image = models.ForeignKey(
+        "wagtailimages.Image",
+        on_delete=models.CASCADE,
+        related_name="+",
+        verbose_name="Страница или левая полоса",
+    )
+    image_right = models.ForeignKey(
+        "wagtailimages.Image",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Правая полоса (разворот)",
+        null=True,
+        blank=True,
+    )
+    caption = models.CharField("Подпись", max_length=200, blank=True)
+
+    panels = [
+        FieldPanel("image"),
+        FieldPanel("image_right"),
+        FieldPanel("caption"),
+    ]
+
+    @property
+    def is_spread(self):
+        return bool(self.image_right_id)
 
 
 class TournamentResultRow(Orderable):
@@ -406,3 +459,244 @@ class TournamentLink(Orderable):
     url = models.URLField("Ссылка")
 
     panels = [FieldPanel("kind"), FieldPanel("title"), FieldPanel("url")]
+
+
+def load_russia_svg() -> str:
+    """SVG карты субъектов; стили снимаем — рисуем через CSS."""
+    path = Path(settings.PROJECT_DIR) / "static" / "maps" / "russia.svg"
+    if not path.exists():
+        return ""
+    raw = path.read_text(encoding="utf-8")
+    raw = re.sub(r"<\?xml[^?]*\?>", "", raw).strip()
+    raw = re.sub(r'\sstyle="[^"]*"', "", raw)
+    raw = re.sub(r"\sstyle='[^']*'", "", raw)
+    return raw
+
+
+class RussiaTournamentsPage(Page):
+    """Раздел «Турниры в России» с интерактивной картой."""
+
+    intro = RichTextField(
+        "Вступление",
+        blank=True,
+        features=["bold", "italic", "link"],
+        help_text="Короткий текст над картой.",
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        InlinePanel("regions", label="Региональные турниры"),
+    ]
+
+    parent_page_types = ["home.HomePage"]
+    subpage_types = []
+    max_count = 1
+
+    def regions_payload(self):
+        """Данные для JS: код региона → карточка турнира."""
+        out = {}
+        for reg in self.regions.all():
+            out[reg.region_code] = reg.as_payload()
+        return out
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        context["russia_svg"] = load_russia_svg()
+        context["regions_json"] = json.dumps(self.regions_payload(), ensure_ascii=False)
+        context["region_names_json"] = json.dumps(REGIONS, ensure_ascii=False)
+        context["active_region_codes"] = [
+            r.region_code for r in self.regions.all() if r.has_tournament
+        ]
+        return context
+
+
+class RegionalTournament(ClusterableModel, Orderable):
+    page = ParentalKey(
+        RussiaTournamentsPage,
+        on_delete=models.CASCADE,
+        related_name="regions",
+    )
+    region_code = models.CharField(
+        "Субъект РФ",
+        max_length=16,
+        choices=REGION_CHOICES,
+        db_index=True,
+    )
+    has_tournament = models.BooleanField(
+        "Есть турнир (подсветка на карте)",
+        default=True,
+    )
+    title = models.CharField("Название турнира", max_length=200)
+    city = models.CharField("Город / площадка", max_length=160, blank=True)
+    date_start = models.DateField("Начало", blank=True, null=True)
+    date_end = models.DateField("Конец", blank=True, null=True)
+    date_note = models.CharField(
+        "Когда (свободная формулировка)",
+        max_length=200,
+        blank=True,
+        help_text="Например: «март 2026» или «даты уточняются».",
+    )
+    contacts = models.TextField("Контакты", blank=True)
+    info = RichTextField(
+        "О турнире",
+        blank=True,
+        features=["bold", "italic", "link", "ol", "ul"],
+    )
+    results_url = models.CharField(
+        "Результаты: ссылка на оригинал",
+        max_length=500,
+        blank=True,
+    )
+    results_label = models.CharField(
+        "Подпись к результатам",
+        max_length=160,
+        blank=True,
+        default="Оригинал результатов",
+    )
+    results_text = models.TextField(
+        "Краткие результаты",
+        blank=True,
+        help_text="Можно списком: место — команда.",
+    )
+
+    panels = [
+        MultiFieldPanel(
+            [
+                FieldPanel("region_code"),
+                FieldPanel("has_tournament"),
+                FieldPanel("title"),
+                FieldPanel("city"),
+                FieldPanel("date_start"),
+                FieldPanel("date_end"),
+                FieldPanel("date_note"),
+            ],
+            heading="Регион и даты",
+        ),
+        FieldPanel("contacts"),
+        FieldPanel("info"),
+        InlinePanel("problems", label="Задачи года"),
+        MultiFieldPanel(
+            [
+                FieldPanel("results_text"),
+                FieldPanel("results_url"),
+                FieldPanel("results_label"),
+            ],
+            heading="Результаты",
+        ),
+        InlinePanel("photos", label="Фото"),
+    ]
+
+    class Meta(Orderable.Meta):
+        verbose_name = "Региональный турнир"
+        verbose_name_plural = "Региональные турниры"
+        unique_together = [("page", "region_code")]
+
+    def __str__(self):
+        return f"{self.region_name}: {self.title}"
+
+    @property
+    def region_name(self):
+        return REGIONS.get(self.region_code, self.region_code)
+
+    def when_label(self):
+        if self.date_note:
+            return self.date_note
+        if self.date_start and self.date_end:
+            if self.date_start == self.date_end:
+                return self.date_start.strftime("%d.%m.%Y")
+            return f"{self.date_start.strftime('%d.%m.%Y')} – {self.date_end.strftime('%d.%m.%Y')}"
+        if self.date_start:
+            return self.date_start.strftime("%d.%m.%Y")
+        return ""
+
+    def as_payload(self):
+        return {
+            "code": self.region_code,
+            "region": self.region_name,
+            "has_tournament": self.has_tournament,
+            "title": self.title,
+            "city": self.city,
+            "when": self.when_label(),
+            "contacts": self.contacts,
+            "info_html": expand_db_html(self.info) if self.info else "",
+            "problems": [
+                {
+                    "number": p.number,
+                    "title": p.title,
+                    "statement": p.statement,
+                }
+                for p in self.problems.all().order_by("number", "sort_order")
+            ],
+            "results_text": self.results_text,
+            "results_url": self.results_url,
+            "results_label": self.results_label or "Оригинал результатов",
+            "photos": [
+                {
+                    "src": ph.src,
+                    "thumb": ph.thumb_src,
+                    "caption": ph.caption,
+                    "original": ph.original,
+                }
+                for ph in self.photos.all()
+                if ph.src
+            ],
+        }
+
+
+class RegionalProblem(Orderable):
+    tournament = ParentalKey(
+        RegionalTournament,
+        on_delete=models.CASCADE,
+        related_name="problems",
+    )
+    number = models.PositiveIntegerField("Номер")
+    title = models.CharField("Название", max_length=200)
+    statement = models.TextField("Условие", blank=True)
+
+    panels = [FieldPanel("number"), FieldPanel("title"), FieldPanel("statement")]
+
+
+class RegionalPhoto(Orderable):
+    tournament = ParentalKey(
+        RegionalTournament,
+        on_delete=models.CASCADE,
+        related_name="photos",
+    )
+    image = models.ForeignKey(
+        "wagtailimages.Image",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Файл",
+        null=True,
+        blank=True,
+    )
+    external_url = models.TextField("Или внешняя ссылка", blank=True)
+    original_url = models.URLField("Оригинал", blank=True)
+    caption = models.CharField("Подпись", max_length=200, blank=True)
+
+    panels = [
+        FieldPanel("image"),
+        FieldPanel("external_url"),
+        FieldPanel("original_url"),
+        FieldPanel("caption"),
+    ]
+
+    @property
+    def src(self):
+        if self.external_url:
+            return vk_sized(self.external_url, "1280x0")
+        if self.image:
+            return self.image.file.url
+        return ""
+
+    @property
+    def thumb_src(self):
+        if self.external_url:
+            return vk_sized(self.external_url, "240x0")
+        if self.image:
+            return self.image.file.url
+        return ""
+
+    @property
+    def original(self):
+        return self.original_url or ""

@@ -1,0 +1,58 @@
+{% load wagtailcore_tags %}
+<section class="russia-map" data-russia-map>
+    {% if intro %}
+    <div class="russia-intro prose">{{ intro|richtext }}</div>
+    {% endif %}
+    <div class="russia-layout">
+        <div class="russia-map-stage" aria-label="Карта субъектов Российской Федерации">
+            <div class="russia-svg-wrap" data-russia-viewport>
+                <div class="russia-svg-inner" data-russia-zoom>
+                {{ svg|safe }}
+                </div>
+            </div>
+            <div class="russia-zoom-bar" aria-hidden="true">
+                <button type="button" class="russia-zoom-btn" data-russia-zoom-in title="Приблизить">+</button>
+                <button type="button" class="russia-zoom-btn" data-russia-zoom-out title="Отдалить">−</button>
+                <button type="button" class="russia-zoom-btn" data-russia-zoom-reset title="Сбросить">⟲</button>
+            </div>
+        </div>
+        <aside class="russia-panel" data-russia-panel aria-live="polite">
+            <div class="russia-panel-empty" data-russia-empty>
+                <p class="russia-panel-kicker">Регион</p>
+                <h2 class="russia-panel-title">Выберите область на карте</h2>
+                <p class="russia-panel-lead">Справа появятся контакты, даты, задачи и результаты регионального турнира.</p>
+            </div>
+            <div class="russia-panel-body is-hidden" data-russia-body>
+                <p class="russia-panel-kicker" data-f="region"></p>
+                <h2 class="russia-panel-title" data-f="title"></h2>
+                <p class="russia-panel-meta" data-f="meta"></p>
+                <div class="russia-block" data-block="contacts">
+                    <h3>Контакты</h3>
+                    <p class="russia-pre" data-f="contacts"></p>
+                </div>
+                <div class="russia-block" data-block="info">
+                    <h3>О турнире</h3>
+                    <div class="prose russia-info" data-f="info"></div>
+                </div>
+                <div class="russia-block" data-block="problems">
+                    <h3>Задачи года</h3>
+                    <ol class="russia-problems" data-f="problems"></ol>
+                </div>
+                <div class="russia-block" data-block="results">
+                    <h3>Результаты</h3>
+                    <pre class="russia-pre" data-f="results_text"></pre>
+                    <p><a class="russia-link" data-f="results_link" href="#" target="_blank" rel="noreferrer"></a></p>
+                </div>
+                <div class="russia-block" data-block="photos">
+                    <h3>Фото</h3>
+                    <div class="russia-photos" data-f="photos"></div>
+                </div>
+                <div class="russia-block russia-none" data-block="none">
+                    <p>В этом субъекте региональный турнир пока не заведён.</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+    <script type="application/json" data-russia-data>{{ regions_json|safe }}</script>
+    <script type="application/json" data-russia-names>{{ region_names_json|safe }}</script>
+</section>

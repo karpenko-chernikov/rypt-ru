@@ -1,0 +1,204 @@
+<html>
+<head>                                   
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">       
+<meta name="keywords" content="Турнир юных физиков, ТЮФ, ypt, young physisists tour">
+<meta name="description" content="Турнир юных физиков - официальный сайт турнира">
+<META NAME="DOCUMENT-STATE" CONTENT="DYNAMIC">
+<META NAME="ROBOTS" CONTENT="all">
+
+<meta property="og:site_name" content="Всероссийский Тернир Юных Физиков"/>
+<meta property="og:title" content="Всероссийский турнир Юных Физиков"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="http://rusypt.msu.ru/index.shtml"/>
+
+<title>Турнир Юных Физиков</title>
+
+<style>
+BODY {font-family: Verdana, Tahoma, Arial; font-size:10pt;}
+.simple {font-size:1.1em;}
+.str {font-weight:bold; font-size:1.1em;}
+.str2 {font-weight:bold; font-size:1em;}
+.str3 {font-weight:bold; font-size:0.9em;}
+.text3 {font-weight:normal; font-size:0.8em;}
+a {text-decoration:none; font-weight: bold; font-size:0.9em; color:#111111;}
+
+ol {
+	font-size:1.1em;
+}
+
+div.header1 {
+	font-weight:bold; 
+	font-size:1.3em; 
+	text-align:center;
+}
+
+div.header2 {
+	font-weight:normal;
+	font-size:1.2em; 
+	text-align:left;
+}
+
+div.header2center {
+	font-weight:bold;
+	font-size:1.2em; 
+	text-align:center;
+}
+
+
+
+table.simple2 {
+	border-collapse: collapse;
+	width: 450px;
+}
+
+table.simple3 {
+	border-collapse: collapse;
+	width: 650px;
+}
+
+table.simple4 {
+	border-collapse: collapse;
+	width: 900px;
+}
+
+.simple2 td, .simple3 td, .simple4 td {
+	border: 1px solid #333;
+	padding: 2px;
+	text-align: left;
+	font-size: 0.8em;
+}
+.simple2 th, .simple3 th, .simple4 th {
+ 	border: 1px solid #333;
+	padding: 2px;
+	text-align: center;
+	font-size: 0.8em;
+	background: #F9F9F9;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+(function (d, w, c) {
+    (w[c] = w[c] || []).push(function() {
+        try {
+            w.yaCounter7056388 = new Ya.Metrika({id:7056388,
+                    webvisor:true,
+                    clickmap:true,
+                    trackLinks:true,
+                    accurateTrackBounce:true,
+                    trackHash:true});
+        } catch(e) { }
+    });
+
+    var n = d.getElementsByTagName("script")[0],
+        s = d.createElement("script"),
+        f = function () { n.parentNode.insertBefore(s, n); };
+    s.type = "text/javascript";
+    s.async = true;
+    s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js";
+
+    if (w.opera == "[object Opera]") {
+        d.addEventListener("DOMContentLoaded", f, false);
+    } else { f(); }
+})(document, window, "yandex_metrika_callbacks");
+</script>
+<noscript><div><img src="//mc.yandex.ru/watch/7056388" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+<!--лошади-->
+<p align="center">
+<table width=50%>
+	<tr>
+	<td><img src="/img/horse_right.jpg" width=100 height=150></td>
+	<td align="center"><h2>ТУРНИР ЮНЫХ ФИЗИКОВ</h2></td>
+	<td><img src="/img/horse_left.jpg" width=100 height=150></td>
+	</tr>
+</table>
+</p>
+
+<!--меню-->
+<hr>
+<table width=100%><tr>
+<th><a href="/">главная</a></th>
+<th><a href="/news.shtml">новости</a></th>
+<th><a href="/archive.shtml">архив</a></th>
+<th><a href="/archive/tour2020/index.shtml">турнир текущего года</a></th>
+<th><a href="/docs.shtml">документы</a></th>
+<!--<th><a href="/summer.shtml">летняя школа</a></th>-->
+<th><a href="/private.shtml">личный кабинет</a></th>
+<th><a href="/contacts.shtml">контакты</a></th>            
+</tr></table>
+<p align="right">
+<!--#include virtual="/private2.php"-->
+</p>
+<hr>
+
+
+<p align="center" class="str">
+Итоговый отчёт о проведении XXXII Всероссийского Турнира Юных Физиков
+</p>
+
+<p>
+XXXII Всероссийский Турнир Юных Физиков проходил с 21 по 27 марта 2010 года в г. Санкт-Петербурге в Санкт-Петербургском государственном университете на базе Академической гимназии Санкт-Петербургского государственного университета.
+</p>
+
+<p>
+В турнире приняло участие 12 команд из 10 городов:
+<ul>
+<li>команда Вятской гуманитарной гимназии с углубленным изучением английского языка (Кировская область, г. Киров)
+<li>команда ГОУ Центр образования № 1811 &quot;Измайлово&quot;, г. Москва
+<li>команда МОУ &quot;Лицей №6 им. И.З. Шуклина&quot;, г.Горно-Алтайск, Республика Алтай
+<li>команда Лицея - интерната Северо -Кавказского государственного технического университета для одаренных детей Ставропольского края
+<li>СУНЦ УрГУ-1 и СУНЦ УрГУ-2  команды  Специализированного Учебно-Научного Центра Уральского государственного университета
+<li>команда Лицея №130, г. Екатеринбург
+<li>команда ГОУ гимназии № 406 г. Пушкин Пушкинского района Санкт-Петербурга
+<li>команда МОУ &quot;Лицей&quot; г. Лесной Свердловской области
+<li>сборная команда г. Воронежа
+<li>команда МОУ &quot;Державинский лицей&quot;, г. Петрозаводск
+<li>команда Академической гимназии СПбГУ, г. Санкт-Петербург
+</ul>
+</p>
+
+<!--HERE-->
+<p>
+Общее количество участников турнира – учащихся 56 человек, руководителей команд 17 человек. 
+В состав Высшей лиги вошли команды Специализированного Учебно-Научного Центра Уральского государственного университета, Лицея № 130 г.
+Проживание и питание участников было организовано в общежитии и столовой Академической гимназии СПбГУ.
+В рамках культурной программы для участников турнира были проведены автобусная  экскурсия по Санкт-Петербургу и по государственному музею заповеднику Петергоф с посещением Большого дворца. Участники турнира также посетили музей истории СПбГУ и музей оптики СПбГУ информационных технологий, механики и оптики. Участники Турнира встретились с деканом физического факультета СПбГУ А.С. Чирцовым, который рассказал об образовательных программах и направлениях научной деятельности факультета.
+Команды приняли участие в пяти общих отборочных боях, по результатам которых, три лучшие команды в высшей и в первой лиге участвовали в финальных  физических  боях. Финальные физбои Первой и Высшей лиги проводились на физическом факультете СПбГУ
+Победителем турнира в высшей лиге стала команда СУНЦ УрГУ-1 (команда Специализированного учебно-научного центра Уральского государственного университета), которая направляется на XXIII Международный Турнир Юных Физиков, который будет проходить с 9 по 16 июля 2010 года в столице Австрии Вене.
+Из ряда городов (Инта, Новгород, Салехард, Нальчик, Улан-Удэ и др.) команды не смогли принять участие во Всероссийском турнире из-за финансовых трудностей. 
+</p>
+
+<p align=right>
+Председатель Российского Турнира <b>В.И. Лобышев</b>
+</p>	
+
+<p align=right>
+Председатель Оргкомитета <b>С.С. Пивоваров</b>
+</p>
+
+<p>
+Приложения:
+<ol>
+	<li><a href="pril1.shtml">Протокол результатов предварительных физбоёв</a>
+	<li><a href="pril2.shtml">Протокол финальных физбоёв Турнира</a>
+	<li><a href="pril3.shtml">Итоговый протокол командного и личного зачета Турнира</a>
+	<li><a href="pril4.shtml">Список участников и руководителей команд XXXI Всероссийского турнира юных физиков</a>
+	<li><a href="pril5.shtml">Список членов жюри XXXII  Российского  Турнира Юных Физиков</a>
+</ol>
+</p>
+
+<hr>
+<p align="right">
+<font size="-2">
+callaby &copy;&nbsp;2008&mdash;2020&nbsp;
+</font>
+</p>
+</body>
+</html>
+

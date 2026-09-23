@@ -1,0 +1,30 @@
+{% extends "editor/base.html" %}
+{% block title %}Материалы · {{ page.display_title }}{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:season_detail' page.year %}">← {{ page.display_title }}</a></p>
+<h1 class="editor-h1">Материалы</h1>
+
+{% if links %}
+<table class="editor-table">
+    <thead><tr><th>Тип</th><th>Название</th><th>Ссылка</th><th></th></tr></thead>
+    <tbody>
+    {% for link in links %}
+    <tr>
+        <td>{{ link.get_kind_display }}</td>
+        <td>{{ link.title }}</td>
+        <td><a href="{{ link.url }}" target="_blank" rel="noreferrer">открыть</a></td>
+        <td>
+            <form method="post" action="{% url 'editor:link_delete' page.year link.pk %}" onsubmit="return confirm('Удалить?');">
+                {% csrf_token %}
+                <button type="submit" class="editor-btn editor-btn-danger">Удалить</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="editor-empty">Ссылок нет. Добавьте отчёт или новость — на сайте появится вкладка «Материалы».</div>
+{% endif %}
+<a class="editor-btn editor-btn-primary" href="{% url 'editor:link_add' page.year %}">Добавить ссылку</a>
+{% endblock %}

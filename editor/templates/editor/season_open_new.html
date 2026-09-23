@@ -1,0 +1,16 @@
+{% extends "editor/base.html" %}
+{% block title %}Открыть новый сезон{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:dashboard' %}">← Сезоны</a></p>
+<h1 class="editor-h1">Открыть новый сезон</h1>
+<p class="editor-lead">Текущий будет перенесён в прошедшие, новый станет текущим.</p>
+<form method="post" class="editor-form" onsubmit="return confirm('Снять текущий сезон и открыть новый?');">
+    {% csrf_token %}
+    {% for field in form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% endfor %}
+    <p style="margin-top:1.2rem"><button type="submit" class="editor-btn editor-btn-primary">Открыть</button></p>
+</form>
+{% endblock %}

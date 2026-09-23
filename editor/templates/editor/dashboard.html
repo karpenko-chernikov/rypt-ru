@@ -1,0 +1,50 @@
+{% extends "editor/base.html" %}
+{% block title %}Сезоны{% endblock %}
+{% block content %}
+<h1 class="editor-h1">Сезоны</h1>
+<p class="editor-lead">Текущий и прошедшие. Создавайте сезоны и переключайте статус здесь.</p>
+<div class="editor-actions">
+    <a class="editor-btn editor-btn-primary" href="{% url 'editor:season_create' %}">Новый сезон</a>
+    <a class="editor-btn" href="{% url 'editor:season_open_new' %}">Открыть новый сезон</a>
+</div>
+
+<section class="editor-section">
+    <h2>Текущий</h2>
+    {% if current %}
+    <ul class="editor-list">
+        <li>
+            <div>
+                <span class="editor-badge">Текущий</span>
+                <a href="{% url 'editor:season_detail' current.year %}"><strong>{{ current.display_title }}</strong></a>
+                {% if current.city %}<span> · {{ current.city }}</span>{% endif %}
+            </div>
+            <form method="post" action="{% url 'editor:season_archive' current.year %}" onsubmit="return confirm('Перенести в прошедшие?');">
+                {% csrf_token %}
+                <button type="submit" class="editor-btn">В прошедшие</button>
+            </form>
+        </li>
+    </ul>
+    {% else %}
+    <p class="editor-empty">Текущего сезона нет. Создайте новый или назначьте прошедший.</p>
+    {% endif %}
+</section>
+
+<section class="editor-section">
+    <h2>Прошедшие</h2>
+    {% if past %}
+    <ul class="editor-list">
+        {% for s in past %}
+        <li>
+            <a href="{% url 'editor:season_detail' s.year %}">{{ s.display_title }}{% if s.city %} · {{ s.city }}{% endif %}</a>
+            <form method="post" action="{% url 'editor:season_make_current' s.year %}" onsubmit="return confirm('Сделать текущим? Предыдущий текущий будет снят.');">
+                {% csrf_token %}
+                <button type="submit" class="editor-btn">Сделать текущим</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="editor-empty">Прошедших сезонов пока нет.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block body_class %}russia-page{% endblock %}
+
+{% block content %}
+<article class="page page-russia">
+    <h1>{{ page.title }}</h1>
+    {% include "home/includes/russia_map.html" with intro=page.intro svg=russia_svg regions_json=regions_json region_names_json=region_names_json %}
+</article>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "editor/base.html" %}
+{% block title %}{{ page.display_title }}{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:dashboard' %}">← Сезоны</a></p>
+<h1 class="editor-h1">{{ page.display_title }}</h1>
+{% if page.is_current %}<p class="editor-lead"><span class="editor-badge">Текущий сезон</span></p>{% endif %}
+
+<nav class="editor-tabs">
+    <a href="{% url 'editor:season_meta' page.year %}">Шапка</a>
+    <a href="{% url 'editor:season_problems' page.year %}">Задачи{% if problems_count or scans_count %} ({{ problems_count }}/{{ scans_count }}){% endif %}</a>
+    <a href="{% url 'editor:season_results' page.year %}">Результаты{% if results_count %} ({{ results_count }}){% endif %}</a>
+    <a href="{% url 'editor:season_iypt' page.year %}">IYPT</a>
+    <a href="{% url 'editor:season_photos' page.year %}">Фото{% if photos_count or has_albums %} ·{% endif %}</a>
+    <a href="{% url 'editor:season_materials' page.year %}">Материалы{% if links_count %} ({{ links_count }}){% endif %}</a>
+    <a href="{{ page.url }}" target="_blank" rel="noreferrer">На сайте ↗</a>
+</nav>
+
+<div class="editor-actions">
+    {% if page.is_current %}
+    <form method="post" action="{% url 'editor:season_archive' page.year %}" onsubmit="return confirm('В прошедшие?');">
+        {% csrf_token %}
+        <button type="submit" class="editor-btn">В прошедшие</button>
+    </form>
+    {% else %}
+    <form method="post" action="{% url 'editor:season_make_current' page.year %}" onsubmit="return confirm('Сделать текущим?');">
+        {% csrf_token %}
+        <button type="submit" class="editor-btn editor-btn-primary">Сделать текущим</button>
+    </form>
+    {% endif %}
+</div>
+
+<ul class="editor-list">
+    <li><a href="{% url 'editor:season_meta' page.year %}">Шапка</a><span>{% if page.city %}{{ page.city }}{% else %}город не задан{% endif %}</span></li>
+    <li><a href="{% url 'editor:season_problems' page.year %}">Задачи и сканы</a><span>{{ problems_count }} задач, {{ scans_count }} сканов</span></li>
+    <li><a href="{% url 'editor:season_results' page.year %}">Результаты</a><span>{% if results_count %}{{ results_count }} строк{% else %}нет — добавить{% endif %}</span></li>
+    <li><a href="{% url 'editor:season_iypt' page.year %}">IYPT</a><span>{% if has_iypt_text or iypt_rows %}заполнено{% else %}пусто{% endif %}</span></li>
+    <li><a href="{% url 'editor:season_photos' page.year %}">Фото</a><span>{{ photos_count }} файлов</span></li>
+    <li><a href="{% url 'editor:season_materials' page.year %}">Материалы</a><span>{{ links_count }} ссылок</span></li>
+</ul>
+{% endblock %}

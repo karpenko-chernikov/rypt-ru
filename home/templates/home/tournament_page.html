@@ -14,16 +14,16 @@
     <p class="when">{% if page.date_start and page.date_end %}{{ page.date_start|date:"d.m.Y" }} — {{ page.date_end|date:"d.m.Y" }}{% elif page.date_start %}{{ page.date_start|date:"d.m.Y" }}{% endif %}{% if page.city %}{% if page.date_start %}, {% endif %}{{ page.city }}{% endif %}</p>
     {% endif %}
 
-    {% if problems or ranking or finals or league_a or league_b or finals_b or has_iypt or page.results_more_url or has_photos or report_links or news_links %}
+    {% if problems or has_problem_scans or has_result_tables or has_iypt or has_photos or report_links or news_links %}
     <div class="season-switch" data-season-tabs>
         <div class="season-tabs" role="tablist" aria-label="Разделы сезона">
-            {% if problems %}
+            {% if problems or has_problem_scans %}
             <button type="button" class="season-tab" role="tab" id="tab-zadachi" aria-controls="panel-zadachi" aria-selected="true" data-tab="zadachi">
                 <span class="radio" aria-hidden="true"></span>
                 Задачи
             </button>
             {% endif %}
-            {% if ranking or finals or league_a or league_b or finals_b or page.results_more_url %}
+            {% if has_result_tables %}
             <button type="button" class="season-tab" role="tab" id="tab-rezultaty" aria-controls="panel-rezultaty" aria-selected="false" data-tab="rezultaty" tabindex="-1">
                 <span class="radio" aria-hidden="true"></span>
                 Результаты
@@ -49,8 +49,26 @@
             {% endif %}
         </div>
 
-        {% if problems %}
+        {% if problems or has_problem_scans %}
         <section class="season-panel" role="tabpanel" id="panel-zadachi" aria-labelledby="tab-zadachi">
+            {% if has_problem_scans %}
+            <div class="problem-scans">
+                {% for scan in problem_scans %}
+                <figure class="problem-scan{% if scan.is_spread %} problem-scan--spread{% endif %}">
+                    <div class="problem-scan__pages">
+                        {% image scan.image width-1400 as scan_left %}
+                        <img src="{{ scan_left.url }}" alt="{% if scan.caption %}{{ scan.caption }}{% else %}Скан условий{% endif %}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                        {% if scan.image_right %}
+                        {% image scan.image_right width-1400 as scan_right %}
+                        <img src="{{ scan_right.url }}" alt="" loading="lazy">
+                        {% endif %}
+                    </div>
+                    {% if scan.caption %}<figcaption>{{ scan.caption }}</figcaption>{% endif %}
+                </figure>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if problems %}
             <ol class="problems">
                 {% for item in problems %}
                 <li>
@@ -59,13 +77,14 @@
                 </li>
                 {% endfor %}
             </ol>
+            {% endif %}
         </section>
         {% endif %}
 
-        {% if ranking or finals or league_a or league_b or finals_b or page.results_more_url %}
+        {% if has_result_tables %}
         <section class="season-panel" role="tabpanel" id="panel-rezultaty" aria-labelledby="tab-rezultaty" hidden>
             {% if has_leagues %}
-            <div class="results-split results-split--three">
+            <div class="results-split{% if ranking %}{% if finals or finals_b %} results-split--three{% endif %}{% endif %}">
                 {% if ranking %}
                 <div>
                     <h2>Общий рейтинг</h2>
@@ -89,7 +108,7 @@
                 <div>
                     <h2>Финалы</h2>
                     {% if finals %}
-                    <h3>Финал высшей лиги</h3>
+                    <h3>{% if finals_b %}Финал высшей лиги{% else %}Финал{% endif %}</h3>
                     {% include "home/includes/ranking_table.html" with rows=finals has_city=finals_has_city %}
                     {% endif %}
                     {% if finals_b %}
@@ -117,10 +136,10 @@
             {% endif %}
             {% if ranking or finals or league_a or league_b or finals_b %}
                 {% if page.results_more_url %}
-                <p class="prose"><a href="{{ page.results_more_url }}" rel="noreferrer">{{ page.results_more_label|default:"Оригинал" }}</a></p>
+                <p class="prose"><a href="{{ page.results_more_url }}"{% if ".xls" in page.results_more_url|lower or ".pdf" in page.results_more_url|lower or page.results_more_url|slice:":7" == "/media/" %} download{% endif %} rel="noreferrer">{{ page.results_more_label|default:"Оригинал" }}</a></p>
                 {% endif %}
             {% elif page.results_more_url %}
-            <p class="prose">Итоговой таблицы пока нет. Оригинал — <a href="{{ page.results_more_url }}" rel="noreferrer">{{ page.results_more_label|default:"по ссылке" }}</a>.</p>
+            <p class="prose">Итоговой таблицы пока нет. Оригинал — <a href="{{ page.results_more_url }}"{% if ".xls" in page.results_more_url|lower or ".pdf" in page.results_more_url|lower or page.results_more_url|slice:":7" == "/media/" %} download{% endif %} rel="noreferrer">{{ page.results_more_label|default:"по ссылке" }}</a>.</p>
             {% endif %}
         </section>
         {% endif %}

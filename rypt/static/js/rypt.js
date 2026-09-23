@@ -91,6 +91,12 @@
         var lastClone = originals[n - 1].cloneNode(true);
         firstClone.setAttribute("aria-hidden", "true");
         lastClone.setAttribute("aria-hidden", "true");
+        firstClone.querySelectorAll("[data-russia-map]").forEach(function (el) {
+            delete el.dataset.ready;
+        });
+        lastClone.querySelectorAll("[data-russia-map]").forEach(function (el) {
+            delete el.dataset.ready;
+        });
         deck.appendChild(firstClone);
         deck.insertBefore(lastClone, originals[0]);
 
@@ -356,6 +362,314 @@
     startDeck();
     startSeasonTabs();
     startPhotoStudio();
+
+    function parseJsonScript(root, selector) {
+        var node = root.querySelector(selector);
+        if (!node) return {};
+        try {
+            return JSON.parse(node.textContent || "{}");
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function initRussiaMap(root) {
+        if (!root || root.dataset.ready === "1") return;
+        var svg = root.querySelector("svg");
+        var panel = root.querySelector("[data-russia-panel]");
+        if (!svg || !panel) return;
+        root.dataset.ready = "1";
+
+        var data = parseJsonScript(root, "[data-russia-data]");
+        var names = parseJsonScript(root, "[data-russia-names]");
+        var empty = panel.querySelector("[data-russia-empty]");
+        var body = panel.querySelector("[data-russia-body]");
+        var viewport = root.querySelector("[data-russia-viewport]");
+        var zoomLayer = root.querySelector("[data-russia-zoom]");
+        var activePath = null;
+        var lockedCode = null;
+
+        // —— масштаб / сдвиг ——
+        var scale = 1;
+        var tx = 0;
+        var ty = 0;
+        var minScale = 1;
+        var maxScale = 6;
+        var dragging = false;
+        var moved = false;
+        var lastX = 0;
+        var lastY = 0;
+        var pendingCode = null;
+
+        function regionFromEventTarget(target) {
+            if (!target) return null;
+            if (target.classList && target.classList.contains("russia-region")) return target;
+            if (typeof target.closest === "function") return target.closest(".russia-region");
+            return null;
+        }
+
+        function applyZoom() {
+            if (!zoomLayer) return;
+            zoomLayer.style.transform =
+                "translate(" + tx + "px," + ty + "px) scale(" + scale + ")";
+        }
+
+        function clampPan() {
+            if (!viewport) return;
+            var rect = viewport.getBoundingClientRect();
+            var w = rect.width;
+            var h = rect.height;
+            var maxX = 0;
+            var maxY = 0;
+            var minX = w * (1 - scale);
+            var minY = h * (1 - scale);
+            if (scale <= 1) {
+                tx = 0;
+                ty = 0;
+                return;
+            }
+            tx = Math.min(maxX, Math.max(minX, tx));
+            ty = Math.min(maxY, Math.max(minY, ty));
+        }
+
+        function zoomAt(clientX, clientY, nextScale) {
+            if (!viewport) return;
+            nextScale = Math.min(maxScale, Math.max(minScale, nextScale));
+            if (nextScale === scale) return;
+            var rect = viewport.getBoundingClientRect();
+            var x = clientX - rect.left;
+            var y = clientY - rect.top;
+            // точка под курсором в координатах слоя до зума
+            var sx = (x - tx) / scale;
+            var sy = (y - ty) / scale;
+            scale = nextScale;
+            tx = x - sx * scale;
+            ty = y - sy * scale;
+            clampPan();
+            applyZoom();
+        }
+
+        function resetZoom() {
+            scale = 1;
+            tx = 0;
+            ty = 0;
+            applyZoom();
+        }
+
+        if (viewport && zoomLayer) {
+            viewport.addEventListener(
+                "wheel",
+                function (event) {
+                    event.preventDefault();
+                    var factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+                    zoomAt(event.clientX, event.clientY, scale * factor);
+                },
+                { passive: false }
+            );
+
+            viewport.addEventListener("pointerdown", function (event) {
+                if (event.button !== 0) return;
+                if (event.target.closest && event.target.closest(".russia-zoom-bar")) return;
+                dragging = true;
+                moved = false;
+                lastX = event.clientX;
+                lastY = event.clientY;
+                var regionEl = regionFromEventTarget(event.target);
+                pendingCode = regionEl ? regionEl.id : null;
+                viewport.classList.add("is-panning");
+                try {
+                    viewport.setPointerCapture(event.pointerId);
+                } catch (e) {}
+            });
+
+            viewport.addEventListener("pointermove", function (event) {
+                if (!dragging) return;
+                var dx = event.clientX - lastX;
+                var dy = event.clientY - lastY;
+                if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
+                lastX = event.clientX;
+                lastY = event.clientY;
+                if (scale <= 1) return;
+                tx += dx;
+                ty += dy;
+                clampPan();
+                applyZoom();
+            });
+
+            function endPan(event) {
+                if (!dragging) return;
+                dragging = false;
+                viewport.classList.remove("is-panning");
+                try {
+                    viewport.releasePointerCapture(event.pointerId);
+                } catch (e) {}
+                // pointer capture ломает click на SVG path — фиксируем/снимаем здесь
+                if (!moved && pendingCode) {
+                    if (lockedCode === pendingCode) {
+                        // Повторный клик — снять фикс, снова работает наведение
+                        lockedCode = null;
+                        selectRegion(pendingCode, svg.getElementById(pendingCode));
+                    } else {
+                        lockedCode = pendingCode;
+                        selectRegion(pendingCode, svg.getElementById(pendingCode));
+                    }
+                }
+                pendingCode = null;
+            }
+
+            viewport.addEventListener("pointerup", endPan);
+            viewport.addEventListener("pointercancel", endPan);
+
+            var btnIn = root.querySelector("[data-russia-zoom-in]");
+            var btnOut = root.querySelector("[data-russia-zoom-out]");
+            var btnReset = root.querySelector("[data-russia-zoom-reset]");
+            if (btnIn) {
+                btnIn.addEventListener("click", function () {
+                    var rect = viewport.getBoundingClientRect();
+                    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, scale * 1.25);
+                });
+            }
+            if (btnOut) {
+                btnOut.addEventListener("click", function () {
+                    var rect = viewport.getBoundingClientRect();
+                    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, scale / 1.25);
+                });
+            }
+            if (btnReset) btnReset.addEventListener("click", resetZoom);
+            applyZoom();
+        }
+
+        Object.keys(data).forEach(function (code) {
+            if (!data[code] || !data[code].has_tournament) return;
+            var path = svg.getElementById(code);
+            if (path) path.classList.add("has-tournament");
+        });
+
+        function field(name) {
+            return body.querySelector('[data-f="' + name + '"]');
+        }
+
+        function showBlock(name, on) {
+            var el = body.querySelector('[data-block="' + name + '"]');
+            if (el) el.classList.toggle("is-hidden", !on);
+        }
+
+        function selectRegion(code, path) {
+            if (activePath) activePath.classList.remove("is-active");
+            activePath = path || svg.getElementById(code);
+            if (activePath) activePath.classList.add("is-active");
+
+            empty.classList.add("is-hidden");
+            body.classList.remove("is-hidden");
+
+            var card = data[code];
+            var regionName = (card && card.region) || names[code] || code;
+            field("region").textContent = regionName;
+
+            if (!card) {
+                field("title").textContent = regionName;
+                field("meta").textContent = "";
+                showBlock("contacts", false);
+                showBlock("info", false);
+                showBlock("problems", false);
+                showBlock("results", false);
+                showBlock("photos", false);
+                showBlock("none", true);
+                return;
+            }
+
+            field("title").textContent = card.title || regionName;
+            var metaParts = [];
+            if (card.city) metaParts.push(card.city);
+            if (card.when) metaParts.push(card.when);
+            field("meta").textContent = metaParts.join(" · ");
+
+            var hasContacts = !!(card.contacts && String(card.contacts).trim());
+            showBlock("contacts", hasContacts);
+            if (hasContacts) field("contacts").textContent = card.contacts;
+
+            var hasInfo = !!(card.info_html && String(card.info_html).trim());
+            showBlock("info", hasInfo);
+            if (hasInfo) field("info").innerHTML = card.info_html;
+
+            var problems = card.problems || [];
+            showBlock("problems", problems.length > 0);
+            var ol = field("problems");
+            ol.innerHTML = "";
+            problems.forEach(function (p) {
+                var li = document.createElement("li");
+                var strong = document.createElement("strong");
+                strong.textContent = p.title || "";
+                li.appendChild(strong);
+                if (p.statement) {
+                    var st = document.createElement("span");
+                    st.className = "st";
+                    st.textContent = p.statement;
+                    li.appendChild(st);
+                }
+                ol.appendChild(li);
+            });
+
+            var hasResultsText = !!(card.results_text && String(card.results_text).trim());
+            var hasResultsUrl = !!(card.results_url && String(card.results_url).trim());
+            showBlock("results", hasResultsText || hasResultsUrl);
+            field("results_text").textContent = hasResultsText ? card.results_text : "";
+            field("results_text").style.display = hasResultsText ? "" : "none";
+            var link = field("results_link");
+            if (hasResultsUrl) {
+                link.href = card.results_url;
+                link.textContent = card.results_label || "Оригинал результатов";
+                link.style.display = "";
+            } else {
+                link.removeAttribute("href");
+                link.textContent = "";
+                link.style.display = "none";
+            }
+
+            var photos = card.photos || [];
+            showBlock("photos", photos.length > 0);
+            var gallery = field("photos");
+            gallery.innerHTML = "";
+            photos.forEach(function (ph) {
+                var a = document.createElement("a");
+                a.href = ph.original || ph.src;
+                a.target = "_blank";
+                a.rel = "noreferrer";
+                if (ph.caption) a.title = ph.caption;
+                var img = document.createElement("img");
+                img.src = ph.thumb || ph.src;
+                img.alt = ph.caption || "";
+                a.appendChild(img);
+                gallery.appendChild(a);
+            });
+
+            showBlock("none", false);
+        }
+
+        svg.querySelectorAll(".russia-region").forEach(function (path) {
+            var code = path.id;
+            if (!code) return;
+            path.setAttribute("role", "button");
+            path.setAttribute("aria-label", names[code] || code);
+
+            // Наведение подсвечивает; панель меняет, только если нет фикса.
+            path.addEventListener("mouseenter", function () {
+                path.classList.add("is-hover");
+                if (!lockedCode) {
+                    selectRegion(code, path);
+                }
+            });
+            path.addEventListener("mouseleave", function () {
+                path.classList.remove("is-hover");
+            });
+        });
+    }
+
+    function initAllRussiaMaps() {
+        document.querySelectorAll("[data-russia-map]").forEach(initRussiaMap);
+    }
+
+    initAllRussiaMaps();
 
     if (!preloader || reduce || typeof anime === "undefined") {
         hidePreloader();

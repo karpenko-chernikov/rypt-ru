@@ -1,0 +1,42 @@
+{% extends "editor/base.html" %}
+{% block title %}Фото · {{ page.display_title }}{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:season_detail' page.year %}">← {{ page.display_title }}</a></p>
+<h1 class="editor-h1">Фото</h1>
+
+<section class="editor-section">
+    <h2>Альбомы (ссылки)</h2>
+    <form method="post" class="editor-form">
+        {% csrf_token %}
+        <input type="hidden" name="form" value="album">
+        {% for field in album_form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% endfor %}
+        <p style="margin-top:1rem"><button type="submit" class="editor-btn">Сохранить альбомы</button></p>
+    </form>
+</section>
+
+<section class="editor-section">
+    <h2>Файлы на сервере</h2>
+    {% if photos %}
+    <ul class="editor-list">
+        {% for p in photos %}
+        <li>
+            <div>
+                {% if p.src %}<img class="editor-thumb" src="{{ p.src }}" alt="">{% endif %}
+                {{ p.caption|default:"фото" }}
+            </div>
+            <form method="post" action="{% url 'editor:photo_delete' page.year p.pk %}" onsubmit="return confirm('Удалить?');">
+                {% csrf_token %}
+                <button type="submit" class="editor-btn editor-btn-danger">Удалить</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="editor-empty">Загруженных фото нет.</div>
+    {% endif %}
+    <a class="editor-btn editor-btn-primary" href="{% url 'editor:photo_add' page.year %}">Добавить фото</a>
+</section>
+{% endblock %}

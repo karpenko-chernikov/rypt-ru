@@ -1,0 +1,70 @@
+{% extends "editor/base.html" %}
+{% block title %}Приглашения{% endblock %}
+{% block content %}
+<h1 class="editor-h1">Приглашения</h1>
+<p class="editor-lead">Новый редактор входит только по одноразовой ссылке. После регистрации ссылка сгорает.</p>
+
+{% if created_url %}
+<section class="editor-section editor-invite-created">
+    <h2>Новая ссылка</h2>
+    <p>Передайте лично (мессенджер / лично). Не публикуйте в чатах с посторонними.</p>
+    <p class="editor-invite-url"><code id="invite-url">{{ created_url }}</code></p>
+    <button type="button" class="editor-btn" onclick="navigator.clipboard.writeText(document.getElementById('invite-url').textContent)">Скопировать</button>
+</section>
+{% endif %}
+
+<section class="editor-section">
+    <h2>Создать приглашение</h2>
+    <form method="post" class="editor-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="editor-btn editor-btn-primary">Создать ссылку</button>
+    </form>
+</section>
+
+<section class="editor-section">
+    <h2>Активные</h2>
+    {% if active %}
+    <ul class="editor-list">
+        {% for inv in active %}
+        <li>
+            <div>
+                <code>{{ inv.code|slice:":10" }}…</code>
+                {% if inv.note %}<span> · {{ inv.note }}</span>{% endif %}
+                <span class="editor-muted"> · до {{ inv.expires_at|date:"d.m.Y H:i" }}</span>
+                {% if inv.expires_at < now %}<span class="editor-badge">Истекло</span>{% endif %}
+            </div>
+            {% if inv.expires_at >= now %}
+            <form method="post" action="{% url 'editor:invite_revoke' inv.pk %}" onsubmit="return confirm('Отозвать приглашение?');">
+                {% csrf_token %}
+                <button type="submit" class="editor-btn">Отозвать</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="editor-empty">Активных приглашений нет.</p>
+    {% endif %}
+</section>
+
+<section class="editor-section">
+    <h2>Недавние (использованные / отозванные)</h2>
+    {% if recent %}
+    <ul class="editor-list">
+        {% for inv in recent %}
+        <li>
+            <div>
+                <code>{{ inv.code|slice:":10" }}…</code>
+                {% if inv.revoked %}<span class="editor-badge">Отозвано</span>{% endif %}
+                {% if inv.used_by %}<span> · {{ inv.used_by.username }}</span>{% endif %}
+                {% if inv.used_at %}<span class="editor-muted"> · {{ inv.used_at|date:"d.m.Y H:i" }}</span>{% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="editor-empty">Пока пусто.</p>
+    {% endif %}
+</section>
+{% endblock %}

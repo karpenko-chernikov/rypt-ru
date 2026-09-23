@@ -1,0 +1,48 @@
+{% extends "editor/base.html" %}
+{% block title %}IYPT · {{ page.display_title }}{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:season_detail' page.year %}">← {{ page.display_title }}</a></p>
+<h1 class="editor-h1">IYPT</h1>
+
+<section class="editor-section">
+    <h2>Текст и ссылка</h2>
+    {% if not page.iypt_team and not page.iypt_more_url and not rows %}
+    <div class="editor-empty">Раздел пуст. Заполните состав или добавьте таблицы — на сайте появится вкладка IYPT.</div>
+    {% endif %}
+    <form method="post" class="editor-form">
+        {% csrf_token %}
+        {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+        {% endfor %}
+        <p style="margin-top:1rem"><button type="submit" class="editor-btn editor-btn-primary">Сохранить</button></p>
+    </form>
+</section>
+
+<section class="editor-section">
+    <h2>Таблицы IYPT</h2>
+    {% if rows %}
+    <table class="editor-table">
+        <thead><tr><th>Таблица</th><th>Место</th><th>Команда</th><th>Сумма</th><th></th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+        <tr>
+            <td>{{ r.get_kind_display }}</td>
+            <td>{{ r.place }}</td>
+            <td>{{ r.team }}</td>
+            <td>{{ r.points }}</td>
+            <td>
+                <form method="post" action="{% url 'editor:iypt_row_delete' page.year r.pk %}" onsubmit="return confirm('Удалить?');">
+                    {% csrf_token %}
+                    <button type="submit" class="editor-btn editor-btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <a class="editor-btn" href="{% url 'editor:iypt_row_add' page.year %}">Добавить строку IYPT</a>
+</section>
+{% endblock %}

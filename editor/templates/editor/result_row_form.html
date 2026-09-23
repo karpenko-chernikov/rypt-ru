@@ -1,0 +1,15 @@
+{% extends "editor/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:season_detail' page.year %}">← {{ page.display_title }}</a></p>
+<h1 class="editor-h1">{{ title }}</h1>
+<form method="post" class="editor-form">
+    {% csrf_token %}
+    {% for field in form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% endfor %}
+    <p style="margin-top:1.2rem"><button type="submit" class="editor-btn editor-btn-primary">Сохранить</button></p>
+</form>
+{% endblock %}

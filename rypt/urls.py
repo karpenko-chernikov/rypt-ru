@@ -10,7 +10,9 @@ from search import views as search_views
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
-    # Редактор сайта. На публичных страницах ссылки на него нет.
+    # Кабинет редакторов (секретная регистрация + полный редактор). Не в меню сайта.
+    path("dlya-redaktorov/", include("editor.urls")),
+    # Старая админка Wagtail — только для разработки, редакторам не нужна.
     path("redaktura/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("search/", search_views.search, name="search"),

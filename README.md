@@ -1,47 +1,111 @@
 # RYPT
 
-Сайт Российского турнира юных физиков.
+Сайт Российского турнира юных физиков (Django + Wagtail).
 
-Пока это черновик. Коллегам его показываем на `rypt.folomin.com`. На `rypt.ru` ничего не переезжает, пока Иван не посмотрит и не скажет «можно».
+Черновик для коллег: `https://rypt.folomin.com`. Боевой `rypt.ru` — после согласия Ивана.
 
-## Как устроено простыми словами
+## Стек
 
-Три адреса, их легко перепутать:
+- Python 3.12, Django 5.2, Wagtail 6.4
+- SQLite (достаточно для текущего объёма)
+- Статика: `rypt/static/` → `collectstatic` в `/static/`
+- Кабинет редакторов: приложение `editor` (`/dlya-redaktorov/`)
+- Публичные страницы: приложение `home`
 
-1. **Ваш компьютер** — `http://127.0.0.1:8000`. Видите только вы.
-2. **Черновик для коллег** — `https://rypt.folomin.com` (домен Антона Фоломина). Сюда можно скинуть ссылку в чат. Это ещё не официальный сайт.
-3. **Боевой сайт** — `rypt.ru`. Туда зайдут все. Включаем последним, после согласия Ивана.
-
-Переезд с фоломинского адреса на `rypt.ru` — это в основном смена «стрелки» у домена. Сайт заново писать не нужно.
-
-Код лежит в этом репозитории. Сайт для посетителей — без кнопки «Войти». Редактор (новости, страницы, картинки) открывается **отдельным адресом**: `/redaktura/`. Его не ставим в меню, его знают только редакторы.
-
-## Запуск у себя
-
-Нужны Python 3.12 и этот репозиторий.
+## Быстрый старт
 
 ```bash
+git clone <url-этого-репо>
 cd rypt-ru
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env   # при необходимости
 python manage.py migrate
 python manage.py seed_site
-python manage.py createsuperuser
+python manage.py create_editor_invite --base-url http://127.0.0.1:8000
 python manage.py runserver
 ```
 
-Дальше в браузере:
+- сайт: http://127.0.0.1:8000  
+- кабинет: http://127.0.0.1:8000/dlya-redaktorov/vhod/  
 
-- сайт: http://127.0.0.1:8000
-- редактор: http://127.0.0.1:8000/redaktura/
+Первый редактор — по ссылке из `create_editor_invite`. Либо полный доступ:
 
-`createsuperuser` спросит имя и пароль — это вход в редактор, не в публичный сайт.
+```bash
+python manage.py createsuperuser
+```
 
-## Что можно править в редакторе
+## Структура проекта
 
-- главную фразу и тексты трёх ролей физбоя
-- новости
-- страницы «Турнир», «Задачи», «Контакты»
+| Путь | Назначение |
+|------|------------|
+| `home/` | Модели страниц (сезоны, новости, карта России), шаблоны, команды заполнения |
+| `editor/` | Кабинет: сезоны, журнал, приглашения, регионы России |
+| `rypt/` | Настройки Django, URL, статика (CSS/JS/карта) |
+| `deploy/` | systemd, nginx, скрипты выкладки на VPS |
+| `home/management/commands/fill_season_YYYY.py` | Заполнение сезона из архивных данных |
+| `home/management/commands/fill_russia_regions.py` | Реальные региональные турниры на карте |
 
-Черновик можно сохранить и не публиковать. Посетители видят только нажатое «Опубликовать».
+## Кабинет редактора
+
+- URL: `/dlya-redaktorov/` (в меню сайта **нет** ссылки)
+- Вход: `/dlya-redaktorov/vhod/`
+- Новые редакторы — только по **одноразовому** приглашению:
+
+```bash
+python manage.py create_editor_invite --note "Имя" --days 7
+```
+
+Группа `Editors` даёт доступ в кабинет **без** `is_staff`.  
+`/redaktura/` (Wagtail) и `/django-admin/` закрыты для обычных редакторов middleware’ом.  
+Суперадмин — полный доступ, включая Wagtail.
+
+### Что править в кабинете
+
+- сезоны (текущий / прошедшие), мета, задачи, сканы, результаты, IYPT, фото, материалы
+- карта «Турниры в России» (`/dlya-redaktorov/rossiya/`)
+- журнал правок, приглашения коллег
+
+## Публичные разделы
+
+Меню: Новости, Сезоны, Правила, Турниры в России, Полезные материалы, Партнёры, Контакты.
+
+**Турниры в России** — SVG-карта субъектов (`rypt/static/maps/`), клик фиксирует карточку региона, наведение подсвечивает.
+
+## Заполнение контента сезонов
+
+После `seed_site` / `import_seasons` можно прогнать нужный год:
+
+```bash
+python manage.py fill_season_2008
+python manage.py fill_season_2025
+# …
+python manage.py fill_russia_regions
+```
+
+Команды идемпотентны по смыслу сезона: перезаписывают таблицы/поля этого года.
+
+## Деплой (staging)
+
+Сервер: код в `/var/www/rypt`, env в `/etc/rypt.env` (не в git), сервис `rypt.service`, nginx из `deploy/nginx-rypt.conf`.
+
+```bash
+# на сервере, после rsync/git pull:
+cd /var/www/rypt
+source /etc/rypt.env
+export DJANGO_SETTINGS_MODULE=rypt.settings.production
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py collectstatic --noinput
+systemctl restart rypt
+```
+
+Переменные окружения — см. `.env.example`. Секреты (`DJANGO_SECRET_KEY`, пароли) **никогда** не коммитить.
+
+## Полезные материалы
+
+Раздел `materials` — обычная `ContentPage`. Править можно в кабинете (если добавите UI) или через Wagtail под суперадмином (`/redaktura/`).
+
+## Лицензии сторонних ассетов
+
+- Карта России: `rypt/static/maps/` — MIT (ArmGono/ru-svg-map)

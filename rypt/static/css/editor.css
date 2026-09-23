@@ -1,0 +1,261 @@
+.editor-body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg, #222);
+    color: var(--fg, #fff);
+    font-family: "Manrope", "Segoe UI", sans-serif;
+}
+
+.editor-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    padding: 0.9rem 1.4rem;
+    border-bottom: 1px solid var(--line, rgba(255,255,255,0.16));
+    background: var(--bar, #2c2c2c);
+}
+
+.editor-brand {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: inherit;
+    text-decoration: none;
+}
+
+.editor-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem 1.1rem;
+    align-items: center;
+    font-size: 0.92rem;
+}
+
+.editor-nav a {
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.85;
+}
+
+.editor-nav a:hover { opacity: 1; }
+
+.editor-user {
+    color: var(--muted, rgba(255,255,255,0.52));
+}
+
+.editor-main {
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+}
+
+.editor-messages {
+    list-style: none;
+    margin: 0 0 1.2rem;
+    padding: 0;
+}
+
+.editor-messages li {
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.4rem;
+    border: 1px solid var(--line);
+    background: var(--glass, rgb(255 255 255 / 0.09));
+}
+
+.editor-messages .error { border-color: #c45; }
+
+.editor-h1 {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin: 0 0 0.35rem;
+}
+
+.editor-lead {
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+}
+
+.editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0 0 1.5rem;
+}
+
+.editor-btn {
+    display: inline-block;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.editor-btn:hover { border-color: var(--gold, #d9b24a); }
+
+.editor-btn-primary {
+    background: var(--gold, #d9b24a);
+    border-color: var(--gold, #d9b24a);
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.editor-btn-danger { border-color: #c45; color: #f88; }
+
+.editor-section {
+    margin: 0 0 2rem;
+}
+
+.editor-section h2 {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-size: 1.45rem;
+    text-transform: uppercase;
+    margin: 0 0 0.75rem;
+}
+
+.editor-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.editor-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.editor-list a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.editor-list a:hover { color: var(--gold); }
+
+.editor-badge {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+}
+
+.editor-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1.4rem;
+}
+
+.editor-tabs a {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--line);
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.88rem;
+}
+
+.editor-tabs a.is-on,
+.editor-tabs a:hover {
+    border-color: var(--gold);
+}
+
+.editor-form label {
+    display: block;
+    margin: 0.85rem 0 0.3rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
+.editor-form input,
+.editor-form textarea,
+.editor-form select {
+    width: 100%;
+    max-width: 36rem;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--line);
+    background: var(--bar);
+    color: inherit;
+    font: inherit;
+}
+
+.editor-form .errorlist {
+    color: #f88;
+    margin: 0.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+}
+
+.editor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 1rem;
+}
+
+.editor-table th,
+.editor-table td {
+    text-align: left;
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+}
+
+.editor-empty {
+    padding: 1.2rem;
+    border: 1px dashed var(--line);
+    color: var(--muted);
+    margin: 0 0 1rem;
+}
+
+.editor-back {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+}
+
+.editor-back a { color: var(--muted); }
+
+.editor-payload {
+    white-space: pre-wrap;
+    font-size: 0.82rem;
+    padding: 0.85rem;
+    border: 1px solid var(--line);
+    background: var(--bar);
+    overflow-x: auto;
+}
+
+.editor-thumb {
+    max-width: 8rem;
+    height: auto;
+    display: block;
+}
+
+.editor-muted {
+    color: var(--muted, rgba(255,255,255,0.55));
+    font-size: 0.9rem;
+}
+
+.editor-invite-url {
+    word-break: break-all;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--line);
+    background: var(--bar);
+}
+
+.editor-invite-created {
+    border-color: rgba(120, 200, 120, 0.45);
+}

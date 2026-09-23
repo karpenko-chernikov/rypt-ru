@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from wagtail.models import Site
 
@@ -6,12 +7,12 @@ from home.models import (
     HomePage,
     NewsIndexPage,
     NewsPage,
+    RussiaTournamentsPage,
     TournamentIndexPage,
 )
 
 MENU_PAGES = [
     ("rules", "Правила"),
-    ("russia", "Турниры в России"),
     ("materials", "Полезные материалы"),
     ("partners", "Партнеры"),
     ("contacts", "Контакты"),
@@ -54,7 +55,31 @@ class Command(BaseCommand):
         for news in NewsPage.objects.child_of(news_index):
             news.delete()
 
-        keep = {"news", *(slug for slug, _title in MENU_PAGES)}
+        old_russia = ContentPage.objects.child_of(home).filter(slug="russia").first()
+        if old_russia:
+            old_russia.delete()
+
+        russia = RussiaTournamentsPage.objects.child_of(home).first()
+        if not russia:
+            russia = RussiaTournamentsPage(
+                title="Турниры в России",
+                slug="russia",
+                intro=(
+                    "<p>Региональные турниры по субъектам РФ. "
+                    "Наведите на область — справа откроется карточка турнира.</p>"
+                ),
+            )
+            home.add_child(instance=russia)
+        else:
+            russia.title = "Турниры в России"
+            if not russia.intro:
+                russia.intro = (
+                    "<p>Региональные турниры по субъектам РФ. "
+                    "Наведите на область — справа откроется карточка турнира.</p>"
+                )
+        russia.save_revision().publish()
+
+        keep = {"news", "russia", *(slug for slug, _title in MENU_PAGES)}
         for page in ContentPage.objects.child_of(home):
             if page.slug not in keep:
                 page.delete()
@@ -82,4 +107,5 @@ class Command(BaseCommand):
             tournaments.intro = ""
         tournaments.save_revision().publish()
 
+        call_command("fill_russia_regions")
         self.stdout.write(self.style.SUCCESS("Меню обновлено, тексты сняты."))

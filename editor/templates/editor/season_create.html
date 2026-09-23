@@ -1,0 +1,16 @@
+{% extends "editor/base.html" %}
+{% block title %}Новый сезон{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:dashboard' %}">← Сезоны</a></p>
+<h1 class="editor-h1">Новый сезон</h1>
+<p class="editor-lead">Римский номер считается сам (год − 1978).</p>
+<form method="post" class="editor-form">
+    {% csrf_token %}
+    {% for field in form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% endfor %}
+    <p style="margin-top:1.2rem"><button type="submit" class="editor-btn editor-btn-primary">Создать</button></p>
+</form>
+{% endblock %}

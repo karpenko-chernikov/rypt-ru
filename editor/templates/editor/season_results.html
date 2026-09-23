@@ -1,0 +1,62 @@
+{% extends "editor/base.html" %}
+{% block title %}Результаты · {{ page.display_title }}{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:season_detail' page.year %}">← {{ page.display_title }}</a></p>
+<h1 class="editor-h1">Результаты</h1>
+
+{% if not has_results %}
+<div class="editor-empty">
+    Результатов ещё нет — на сайте вкладки не будет.
+    <p style="margin-top:0.8rem">
+        <a class="editor-btn editor-btn-primary" href="{% url 'editor:result_row_add' page.year %}">Добавить результаты</a>
+    </p>
+</div>
+{% else %}
+
+<section class="editor-section">
+    <h2>Таблицы</h2>
+    {% if rows %}
+    <table class="editor-table">
+        <thead><tr><th>Таблица</th><th>Место</th><th>Команда</th><th>Город</th><th>Сумма</th><th></th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+        <tr>
+            <td>{{ r.get_kind_display }}</td>
+            <td>{{ r.place }}</td>
+            <td>{{ r.team }}</td>
+            <td>{{ r.city }}</td>
+            <td>{{ r.points }}</td>
+            <td>
+                <a class="editor-btn" href="{% url 'editor:result_row_edit' page.year r.pk %}">Изменить</a>
+                <form method="post" action="{% url 'editor:result_row_delete' page.year r.pk %}" style="display:inline" onsubmit="return confirm('Удалить?');">
+                    {% csrf_token %}
+                    <button type="submit" class="editor-btn editor-btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <a class="editor-btn editor-btn-primary" href="{% url 'editor:result_row_add' page.year %}">Добавить строку</a>
+    {% if rows or page.results_more_url %}
+    <form method="post" action="{% url 'editor:results_clear' page.year %}" style="display:inline;margin-left:0.5rem" onsubmit="return confirm('Очистить все результаты?');">
+        {% csrf_token %}
+        <button type="submit" class="editor-btn editor-btn-danger">Очистить раздел</button>
+    </form>
+    {% endif %}
+</section>
+
+<section class="editor-section">
+    <h2>Ссылка «подробнее»</h2>
+    <form method="post" action="{% url 'editor:results_more_save' page.year %}" class="editor-form">
+        {% csrf_token %}
+        {% for field in more_form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% endfor %}
+        <p style="margin-top:1rem"><button type="submit" class="editor-btn">Сохранить ссылку</button></p>
+    </form>
+</section>
+{% endif %}
+{% endblock %}

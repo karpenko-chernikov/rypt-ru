@@ -1,0 +1,17 @@
+{% extends "editor/base.html" %}
+{% block title %}Запись журнала{% endblock %}
+{% block content %}
+<p class="editor-back"><a href="{% url 'editor:journal' %}">← Журнал</a></p>
+<h1 class="editor-h1">{{ entry.summary }}</h1>
+<p class="editor-lead">
+    {{ entry.created_at|date:"d.m.Y H:i" }}
+    · {% if entry.user %}{{ entry.user.username }}{% else %}—{% endif %}
+    · {{ entry.get_action_display }}
+    · {{ entry.get_tab_display }}
+    {% if entry.object_label %}· {{ entry.object_label }}{% endif %}
+</p>
+{% if payload_pretty %}
+<h2 style="font-size:1rem">Снимок</h2>
+<pre class="editor-payload">{{ payload_pretty }}</pre>
+{% endif %}
+{% endblock %}

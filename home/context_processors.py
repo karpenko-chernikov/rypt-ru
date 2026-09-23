@@ -1,4 +1,15 @@
-from home.models import ContentPage, HomePage, NewsIndexPage, NewsPage, TournamentIndexPage, TournamentPage
+from home.models import (
+    ContentPage,
+    HomePage,
+    NewsIndexPage,
+    NewsPage,
+    RussiaTournamentsPage,
+    TournamentIndexPage,
+    TournamentPage,
+    load_russia_svg,
+)
+from home.regions import REGIONS
+import json
 
 NAV_SLUGS = [
     ("news", "Новости"),
@@ -15,6 +26,19 @@ def _same_path(a, b):
     return (a or "/").rstrip("/") == (b or "/").rstrip("/")
 
 
+def _russia_slide(russia_page, request):
+    russia_page.regions.prefetch_related("problems", "photos")
+    return {
+        "title": "Турниры в России",
+        "url": russia_page.get_url(request=request),
+        "kind": "russia",
+        "intro": russia_page.intro,
+        "svg": load_russia_svg(),
+        "regions_json": json.dumps(russia_page.regions_payload(), ensure_ascii=False),
+        "region_names_json": json.dumps(REGIONS, ensure_ascii=False),
+    }
+
+
 def site_nav(request):
     home = HomePage.objects.live().first()
     news_index = None
@@ -26,6 +50,9 @@ def site_nav(request):
             page.slug: page
             for page in ContentPage.objects.child_of(home).live().public()
         }
+        russia_page = (
+            RussiaTournamentsPage.objects.child_of(home).live().public().first()
+        )
         tournament_index = TournamentIndexPage.objects.child_of(home).live().first()
         slides.append(
             {
@@ -71,6 +98,11 @@ def site_nav(request):
                             "current": next((s for s in seasons if s.is_current), None),
                         }
                     )
+                continue
+            if slug == "russia":
+                if russia_page:
+                    items.append({"title": title, "page": russia_page, "url": None})
+                    slides.append(_russia_slide(russia_page, request))
                 continue
             page = pages.get(slug)
             if page:

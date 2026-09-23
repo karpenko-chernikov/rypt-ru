@@ -6,3 +6,9 @@ __pycache__
 media
 /static
 .git
+.env
+.env.*
+!.env.example
+_scan_preview
+*.pem
+*password*.txt

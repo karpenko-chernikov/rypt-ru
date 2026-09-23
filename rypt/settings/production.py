@@ -32,6 +32,12 @@ CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "same-origin"
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_SSL_REDIRECT = True
+
+# Content-Security-Policy (базовая; fonts.googleapis.com для кабинета)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
 try:
     from .local import *
