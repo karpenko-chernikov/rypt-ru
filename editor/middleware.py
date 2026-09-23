@@ -1,16 +1,10 @@
-"""Блокировка Wagtail/django-admin для обычных редакторов кабинета."""
+"""На staging/production /redaktura/ и /django-admin/ не монтируются.
+Middleware — страховка, если маршруты когда-нибудь снова появятся."""
 
-from django.http import HttpResponseForbidden
-
-from editor.authz import user_is_editor
+from django.http import HttpResponseNotFound
 
 
 class BlockCmsAdminForEditorsMiddleware:
-    """
-    Редакторы кабинета не должны попадать в /redaktura/ и /django-admin/.
-    Суперадмины — могут (отладка).
-    """
-
     BLOCKED_PREFIXES = ("/redaktura/", "/django-admin/")
 
     def __init__(self, get_response):
@@ -19,11 +13,5 @@ class BlockCmsAdminForEditorsMiddleware:
     def __call__(self, request):
         path = request.path
         if any(path.startswith(p) for p in self.BLOCKED_PREFIXES):
-            user = getattr(request, "user", None)
-            if user is not None and user.is_authenticated:
-                if user_is_editor(user) and not user.is_superuser:
-                    return HttpResponseForbidden(
-                        "Кабинет редактора — только /dlya-redaktorov/. "
-                        "Админка Wagtail закрыта для редакторов."
-                    )
+            return HttpResponseNotFound()
         return self.get_response(request)

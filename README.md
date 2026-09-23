@@ -8,9 +8,8 @@
 |--|-----|
 | Сайт (черновик для коллег) | https://rypt.folomin.com |
 | Кабинет редакторов | https://rypt.folomin.com/dlya-redaktorov/vhod/ |
-| Wagtail (суперадмин) | https://rypt.folomin.com/redaktura/ |
 
-Боевой `rypt.ru` — после согласия Ивана. Этот репозиторий — **код**; контент и пользователи живут на сервере, не в Git.
+Боевой `rypt.ru` — после согласия Ивана. Этот репозиторий — **код**; контент и пользователи живут на сервере, не в Git. Админка Wagtail (`/redaktura/`) на сайте **недоступна** — всё редактирование через кабинет.
 
 ## Стек
 
@@ -68,8 +67,7 @@ python manage.py create_editor_invite --note "Имя" --days 7
 ```
 
 Группа `Editors` даёт доступ в кабинет **без** `is_staff`.  
-`/redaktura/` (Wagtail) и `/django-admin/` закрыты для обычных редакторов middleware’ом.  
-Суперадмин — полный доступ, включая Wagtail.
+На живом сайте `/redaktura/` и `/django-admin/` **нет** (не монтируются в production).
 
 ### Что править в кабинете
 
@@ -114,7 +112,7 @@ systemctl restart rypt
 
 ## Полезные материалы
 
-Раздел `materials` — обычная `ContentPage`. Править можно в кабинете (если добавите UI) или через Wagtail под суперадмином (`/redaktura/`).
+Раздел `materials` — обычная `ContentPage`. Править через кабинет (`/dlya-redaktorov/`).
 
 ## Лицензии сторонних ассетов
 
