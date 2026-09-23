@@ -2,7 +2,15 @@
 
 Сайт Российского турнира юных физиков (Django + Wagtail).
 
-Черновик для коллег: `https://rypt.folomin.com`. Боевой `rypt.ru` — после согласия Ивана.
+## Живой сайт
+
+| | URL |
+|--|-----|
+| Сайт (черновик для коллег) | https://rypt.folomin.com |
+| Кабинет редакторов | https://rypt.folomin.com/dlya-redaktorov/vhod/ |
+| Wagtail (суперадмин) | https://rypt.folomin.com/redaktura/ |
+
+Боевой `rypt.ru` — после согласия Ивана. Этот репозиторий — **код**; контент и пользователи живут на сервере, не в Git.
 
 ## Стек
 
@@ -12,7 +20,9 @@
 - Кабинет редакторов: приложение `editor` (`/dlya-redaktorov/`)
 - Публичные страницы: приложение `home`
 
-## Быстрый старт
+## Локальная разработка
+
+Если нужно крутить код у себя на машине (после `runserver` Django слушает localhost):
 
 ```bash
 git clone https://github.com/karpenko-chernikov/rypt-ru.git
@@ -27,10 +37,10 @@ python manage.py create_editor_invite --base-url http://127.0.0.1:8000
 python manage.py runserver
 ```
 
-- сайт: http://127.0.0.1:8000  
-- кабинет: http://127.0.0.1:8000/dlya-redaktorov/vhod/  
+Тогда локально: http://127.0.0.1:8000 и http://127.0.0.1:8000/dlya-redaktorov/vhod/  
+Это **не** продакшен и не staging — только копия на вашем компьютере.
 
-Первый редактор — по ссылке из `create_editor_invite`. Либо полный доступ:
+Первый локальный редактор — по ссылке из `create_editor_invite`. Либо:
 
 ```bash
 python manage.py createsuperuser
