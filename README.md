@@ -15,7 +15,7 @@
 ## Быстрый старт
 
 ```bash
-git clone <url-этого-репо>
+git clone https://github.com/karpenko-chernikov/rypt-ru.git
 cd rypt-ru
 python3.12 -m venv .venv
 source .venv/bin/activate
