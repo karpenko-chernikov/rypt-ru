@@ -1,0 +1,18 @@
+{% load wagtailcore_tags %}
+<div class="materials-groups">
+    {% for group in groups %}
+        <section class="materials-group">
+            <h2 class="materials-group-title">{{ group.title }}</h2>
+            <div class="material-grid">
+                {% for material in group.materials %}
+                    <a class="material-card" href="{% pageurl material %}">
+                        <span class="material-card-title">{{ material.title }}</span>
+                        {% if material.summary %}
+                            <span class="material-card-summary">{{ material.summary }}</span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endfor %}
+</div>

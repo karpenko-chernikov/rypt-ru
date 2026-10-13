@@ -19,3 +19,7 @@ _scan_preview/
 rypt/static/img/partners/_src/
 *.pem
 *password*.txt
+reader/ChatExport_*
+/data/
+reader/data/
+reader/exports/

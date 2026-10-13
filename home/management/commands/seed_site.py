@@ -5,6 +5,7 @@ from wagtail.models import Site
 from home.models import (
     ContentPage,
     HomePage,
+    MaterialsIndexPage,
     NewsIndexPage,
     NewsPage,
     RussiaTournamentsPage,
@@ -13,7 +14,6 @@ from home.models import (
 
 MENU_PAGES = [
     ("rules", "Правила"),
-    ("materials", "Полезные материалы"),
     ("partners", "Партнеры"),
     ("contacts", "Контакты"),
 ]
@@ -78,6 +78,25 @@ class Command(BaseCommand):
                     "Наведите на область — справа откроется карточка турнира.</p>"
                 )
         russia.save_revision().publish()
+
+        old_materials = ContentPage.objects.child_of(home).filter(slug="materials").first()
+        old_materials_intro = old_materials.body if old_materials else ""
+        if old_materials:
+            old_materials.delete()
+
+        materials = MaterialsIndexPage.objects.child_of(home).first()
+        if not materials:
+            materials = MaterialsIndexPage(
+                title="Полезные материалы",
+                slug="materials",
+                intro=old_materials_intro,
+            )
+            home.add_child(instance=materials)
+        else:
+            materials.title = "Полезные материалы"
+            if old_materials_intro and not materials.intro:
+                materials.intro = old_materials_intro
+        materials.save_revision().publish()
 
         keep = {"news", "russia", *(slug for slug, _title in MENU_PAGES)}
         for page in ContentPage.objects.child_of(home):

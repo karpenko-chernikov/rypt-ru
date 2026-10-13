@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block body_class %}materials-group{% endblock %}
+
+{% block content %}
+<article class="page">
+    <h1>{{ page.title }}</h1>
+    {% include "home/includes/materials_list.html" with groups=groups %}
+    {% if page.get_parent %}
+        <p class="back"><a href="{% pageurl page.get_parent %}">Ко всем материалам</a></p>
+    {% endif %}
+</article>
+{% endblock %}

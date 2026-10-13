@@ -112,8 +112,27 @@ systemctl restart rypt
 
 ## Полезные материалы
 
-Раздел `materials` — обычная `ContentPage`. Править через кабинет (`/dlya-redaktorov/`).
+Раздел `materials` — дерево страниц Wagtail: `MaterialsIndexPage` (индекс) → `MaterialGroupPage` (группа-заголовок) → `MaterialPage` (материал). Карточки на индексе ведут на страницы материалов. Правится локально через админку Wagtail `/redaktura/` (доступна только при `DEBUG=True`); на живом сайте этого раздела в кабинете нет.
 
 ## Лицензии сторонних ассетов
 
 - Карта России: `rypt/static/maps/` — MIT (ArmGono/ru-svg-map)
+
+## Зеркало Telegram-канала
+
+Сервер сайта находится в России, где Telegram заблокирован. Поэтому чтение
+канала вынесено в отдельный лёгкий сервис `reader/` (FastAPI + Telethon,
+Docker), который работает на зарубежном сервере и отдаёт посты через защищённый
+HTTP API с bearer-токеном. Сайт тянет оттуда командой:
+
+```bash
+python manage.py sync_telegram
+```
+
+Команда сравнивает посты с уже созданными `NewsPage` (по `telegram_message_id`),
+создаёт недостающие, скачивает фото/видео в медиа и публикует. Запускать её по
+расписанию (cron / systemd timer) каждые 5–10 минут.
+
+Переменные окружения на стороне сайта: `TG_READER_URL`, `TG_READER_TOKEN`,
+`TG_CHANNEL` (см. `.env.example`). Подробности reader-сервиса и его переменных —
+в [`reader/README.md`](reader/README.md).

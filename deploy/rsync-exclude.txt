@@ -12,3 +12,6 @@ media
 _scan_preview
 *.pem
 *password*.txt
+data
+reader/data
+reader/exports
