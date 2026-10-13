@@ -1306,15 +1306,6 @@ main {
     gap: 1.1rem 1.25rem;
 }
 
-.partners-grid > .is-wide {
-    grid-column: span 2;
-}
-
-.partners-grid > .is-wide .partner-emblem img {
-    width: min(100%, 28rem);
-    height: 5.5rem;
-}
-
 .partner-card {
     display: grid;
     grid-template-rows: 1fr auto;
