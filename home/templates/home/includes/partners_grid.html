@@ -6,7 +6,7 @@
     <p class="partners-lead">Организации, которые поддерживают Российский турнир юных физиков.</p>
     <ul class="partners-grid">
         {% for partner in partners %}
-        <li>
+        <li{% if partner.wide %} class="is-wide"{% endif %}>
             <a
                 class="partner-card"
                 href="{{ partner.url }}"

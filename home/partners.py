@@ -34,7 +34,8 @@ PARTNERS = [
         "name": "Фонд «Турниры юных»",
         "short": "Турниры юных",
         "url": "https://rynt.ru/?%D0%A4%D0%BE%D0%BD%D0%B4",
-        "logo": "img/partners/rynt.svg",
+        "logo": "img/partners/rynt.png",
+        "wide": True,
     },
     {
         "slug": "luptakov",
