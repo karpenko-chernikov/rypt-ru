@@ -27,7 +27,7 @@ PARTNERS = [
         "name": "МТИ — Менеджер турнирной информации",
         "short": "МТИ",
         "url": "https://mtiyt.ru/",
-        "logo": "img/partners/mti.png",
+        "logo": "img/partners/mti.svg",
     },
     {
         "slug": "rynt",
