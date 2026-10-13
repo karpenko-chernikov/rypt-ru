@@ -15,3 +15,4 @@ _scan_preview
 data
 reader/data
 reader/exports
+._*
