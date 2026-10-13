@@ -32,9 +32,9 @@ PARTNERS = [
     {
         "slug": "rynt",
         "name": "Фонд «Турниры юных»",
-        "short": "Турниры юных",
+        "short": "Фонд «Турниры юных»",
         "url": "https://rynt.ru/?%D0%A4%D0%BE%D0%BD%D0%B4",
-        "logo": "img/partners/rynt.png",
+        "logo": "img/partners/rynt.svg",
     },
     {
         "slug": "luptakov",
