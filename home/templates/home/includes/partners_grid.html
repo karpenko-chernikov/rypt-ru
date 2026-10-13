@@ -1,0 +1,28 @@
+{% load static %}
+<article class="page partners-page">
+    <h1>{{ title|default:page.title }}</h1>
+    <p class="partners-lead">Организации, которые поддерживают Российский турнир юных физиков.</p>
+    <ul class="partners-grid">
+        {% for partner in partners %}
+        <li>
+            <a
+                class="partner-card"
+                href="{{ partner.url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="{{ partner.name }}"
+            >
+                <span class="partner-emblem">
+                    <img
+                        src="{% static partner.logo %}"
+                        alt="{{ partner.name }}"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                </span>
+                <span class="partner-name">{{ partner.short }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</article>

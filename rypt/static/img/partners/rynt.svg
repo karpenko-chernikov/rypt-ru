@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" role="img" aria-label="Фонд Турниры юных">
+  <rect x="8" y="8" width="304" height="104" rx="8" fill="none" stroke="currentColor" stroke-width="3"/>
+  <text x="160" y="52" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" fill="currentColor">Турниры юных</text>
+  <text x="160" y="88" text-anchor="middle" font-family="Manrope, sans-serif" font-size="16" fill="currentColor" opacity="0.75">фонд</text>
+</svg>

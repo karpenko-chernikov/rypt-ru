@@ -8,6 +8,7 @@ from home.models import (
     TournamentPage,
     load_russia_svg,
 )
+from home.partners import PARTNERS
 from home.regions import REGIONS
 import json
 
@@ -107,14 +108,24 @@ def site_nav(request):
             page = pages.get(slug)
             if page:
                 items.append({"title": title, "page": page, "url": None})
-                slides.append(
-                    {
-                        "title": title,
-                        "url": page.get_url(request=request),
-                        "kind": "page",
-                        "body": page.body,
-                    }
-                )
+                if slug == "partners":
+                    slides.append(
+                        {
+                            "title": title,
+                            "url": page.get_url(request=request),
+                            "kind": "partners",
+                            "partners": PARTNERS,
+                        }
+                    )
+                else:
+                    slides.append(
+                        {
+                            "title": title,
+                            "url": page.get_url(request=request),
+                            "kind": "page",
+                            "body": page.body,
+                        }
+                    )
 
     path = request.path
     slide_index = 0
