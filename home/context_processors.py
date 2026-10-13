@@ -1,6 +1,7 @@
 from home.models import (
     ContentPage,
     HomePage,
+    MaterialsIndexPage,
     NewsIndexPage,
     NewsPage,
     RussiaTournamentsPage,
@@ -53,6 +54,9 @@ def site_nav(request):
         russia_page = (
             RussiaTournamentsPage.objects.child_of(home).live().public().first()
         )
+        materials_page = (
+            MaterialsIndexPage.objects.child_of(home).live().public().first()
+        )
         tournament_index = TournamentIndexPage.objects.child_of(home).live().first()
         slides.append(
             {
@@ -103,6 +107,19 @@ def site_nav(request):
                 if russia_page:
                     items.append({"title": title, "page": russia_page, "url": None})
                     slides.append(_russia_slide(russia_page, request))
+                continue
+            if slug == "materials":
+                if materials_page:
+                    items.append({"title": title, "page": materials_page, "url": None})
+                    slides.append(
+                        {
+                            "title": title,
+                            "url": materials_page.get_url(request=request),
+                            "kind": "materials",
+                            "intro": materials_page.intro,
+                            "groups": materials_page.groups_data(),
+                        }
+                    )
                 continue
             page = pages.get(slug)
             if page:

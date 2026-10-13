@@ -138,13 +138,92 @@ class NewsIndexPage(Page):
 class NewsPage(Page):
     date = models.DateField("Дата")
     body = RichTextField("Текст", features=["h2", "h3", "bold", "italic", "link", "ol", "ul"])
+    telegram_channel = models.CharField(
+        "Telegram-канал",
+        max_length=64,
+        blank=True,
+        editable=False,
+    )
+    telegram_message_id = models.BigIntegerField(
+        "ID поста в Telegram",
+        null=True,
+        blank=True,
+        editable=False,
+    )
 
     content_panels = Page.content_panels + [
         FieldPanel("date"),
         FieldPanel("body"),
+        InlinePanel("attachments", label="Вложения (фото и видео)"),
     ]
     parent_page_types = ["home.NewsIndexPage"]
     subpage_types = []
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["telegram_channel", "telegram_message_id"],
+                condition=models.Q(telegram_message_id__isnull=False),
+                name="news_telegram_post_unique",
+            ),
+        ]
+
+
+class NewsAttachment(Orderable):
+    KIND_PHOTO = "photo"
+    KIND_VIDEO = "video"
+    KIND_CHOICES = [(KIND_PHOTO, "Фото"), (KIND_VIDEO, "Видео")]
+
+    page = ParentalKey(NewsPage, on_delete=models.CASCADE, related_name="attachments")
+    kind = models.CharField(
+        "Тип",
+        max_length=8,
+        choices=KIND_CHOICES,
+        default=KIND_PHOTO,
+    )
+    image = models.ForeignKey(
+        "wagtailimages.Image",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Фото",
+        null=True,
+        blank=True,
+    )
+    video_file = models.FileField(
+        "Видеофайл",
+        upload_to="news/videos/%Y/%m",
+        blank=True,
+    )
+    original_url = models.URLField("Оригинал (t.me)", blank=True)
+    caption = models.CharField("Подпись", max_length=300, blank=True)
+
+    panels = [
+        FieldPanel("kind"),
+        FieldPanel("image"),
+        FieldPanel("video_file"),
+        FieldPanel("original_url"),
+        FieldPanel("caption"),
+    ]
+
+    @property
+    def is_video(self):
+        return self.kind == self.KIND_VIDEO
+
+
+class NewsSyncState(models.Model):
+    channel = models.CharField("Telegram-канал", max_length=64, blank=True)
+    last_message_id = models.BigIntegerField("Последний обработанный ID", default=0)
+
+    class Meta:
+        verbose_name = "Состояние синхронизации Telegram"
+        verbose_name_plural = "Состояние синхронизации Telegram"
+
+    def __str__(self):
+        return f"Telegram sync: {self.channel}@{self.last_message_id}"
+
+    @classmethod
+    def get(cls):
+        return cls.objects.get_or_create(pk=1)[0]
 
 
 class ContentPage(Page):
@@ -156,6 +235,102 @@ class ContentPage(Page):
 
     content_panels = Page.content_panels + [FieldPanel("body")]
     parent_page_types = ["home.HomePage"]
+    subpage_types = []
+
+
+class MaterialsIndexPage(Page):
+    """Раздел «Полезные материалы»: группы, внутри — карточки материалов."""
+
+    intro = RichTextField(
+        "Вступление",
+        blank=True,
+        features=["bold", "italic", "link"],
+    )
+
+    content_panels = Page.content_panels + [FieldPanel("intro")]
+    parent_page_types = ["home.HomePage"]
+    subpage_types = ["home.MaterialGroupPage"]
+    max_count = 1
+
+    def groups_data(self):
+        """Список групп с материалами для шаблонов (индекс и слайд в колоде)."""
+        data = []
+        groups = (
+            MaterialGroupPage.objects.child_of(self)
+            .live()
+            .public()
+            .order_by("path")
+        )
+        for group in groups:
+            data.append(
+                {
+                    "title": group.title,
+                    "materials": list(
+                        MaterialPage.objects.child_of(group)
+                        .live()
+                        .public()
+                        .order_by("path")
+                    ),
+                }
+            )
+        return data
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        context["groups"] = self.groups_data()
+        return context
+
+
+class MaterialGroupPage(Page):
+    """Заголовок группы материалов (Header)."""
+
+    content_panels = Page.content_panels
+    parent_page_types = ["home.MaterialsIndexPage"]
+    subpage_types = ["home.MaterialPage"]
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        context["groups"] = [
+            {
+                "title": self.title,
+                "materials": list(
+                    MaterialPage.objects.child_of(self).live().public().order_by("path")
+                ),
+            }
+        ]
+        return context
+
+
+class MaterialPage(Page):
+    summary = models.CharField(
+        "Краткое описание",
+        max_length=240,
+        blank=True,
+        help_text="Показывается на карточке под названием.",
+    )
+    body = RichTextField(
+        "Текст материала",
+        blank=True,
+        features=[
+            "h1",
+            "h2",
+            "h3",
+            "bold",
+            "italic",
+            "underline",
+            "link",
+            "image",
+            "document-link",
+            "ol",
+            "ul",
+        ],
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel("summary"),
+        FieldPanel("body"),
+    ]
+    parent_page_types = ["home.MaterialGroupPage"]
     subpage_types = []
 
 

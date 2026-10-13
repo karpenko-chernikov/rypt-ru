@@ -18,3 +18,7 @@ htmlcov/
 _scan_preview/
 *.pem
 *password*.txt
+reader/ChatExport_*
+/data/
+reader/data/
+reader/exports/

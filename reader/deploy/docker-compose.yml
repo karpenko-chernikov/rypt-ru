@@ -1,0 +1,12 @@
+services:
+  reader:
+    build: ..
+    env_file: ../.env.reader
+    ports:
+      - "127.0.0.1:19234:8000"
+    volumes:
+      - reader-data:/data
+    restart: unless-stopped
+
+volumes:
+  reader-data:

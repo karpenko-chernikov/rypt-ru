@@ -414,6 +414,40 @@ main {
 
 .back a { text-decoration: none; border-bottom: 1px solid var(--line); }
 
+.news-gallery {
+    display: grid;
+    gap: 1rem;
+    margin: 0 0 1.4rem;
+    max-width: 38rem;
+}
+
+.news-media {
+    margin: 0;
+}
+
+.news-media-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+
+.news-media--video video {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #000;
+}
+
+.news-media figcaption {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
 .notices {
     list-style: none;
     margin: 0;
@@ -1284,4 +1318,57 @@ main {
     .russia-svg-wrap svg {
         max-height: none;
     }
+}
+
+/* Полезные материалы */
+.materials-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.materials-group-title {
+    margin: 0 0 1rem;
+    font-family: "Alumni Sans", "Segoe UI", sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+}
+
+.material-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.9rem;
+}
+
+.material-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.material-card:hover,
+.material-card:focus-visible {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+}
+
+.material-card-title {
+    font-weight: 600;
+    font-size: 1.02rem;
+}
+
+.material-card-summary {
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+.prose u {
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
 }
