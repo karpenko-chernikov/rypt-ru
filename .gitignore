@@ -16,6 +16,7 @@ db.sqlite3
 .coverage
 htmlcov/
 _scan_preview/
+rypt/static/img/partners/_src/
 *.pem
 *password*.txt
 reader/ChatExport_*

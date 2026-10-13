@@ -237,6 +237,19 @@ class ContentPage(Page):
     parent_page_types = ["home.HomePage"]
     subpage_types = []
 
+    def get_template(self, request, *args, **kwargs):
+        if self.slug == "partners":
+            return "home/partners_page.html"
+        return super().get_template(request, *args, **kwargs)
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        if self.slug == "partners":
+            from home.partners import PARTNERS
+
+            context["partners"] = PARTNERS
+        return context
+
 
 class MaterialsIndexPage(Page):
     """Раздел «Полезные материалы»: группы, внутри — карточки материалов."""
