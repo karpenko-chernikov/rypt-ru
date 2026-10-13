@@ -1371,6 +1371,8 @@ main {
 .prose u {
     text-decoration: underline;
     text-underline-offset: 0.12em;
+}
+
 /* Партнёры — крупные одинаковые эмблемы-ссылки */
 .partners-page {
     max-width: 72rem;
@@ -1485,5 +1487,4 @@ main {
     .partners-grid {
         grid-template-columns: 1fr;
     }
-}
 }
