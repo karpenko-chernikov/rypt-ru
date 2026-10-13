@@ -128,6 +128,16 @@
 
         function go(nextPos, animate) {
             if (moving && animate) return;
+            // Предпросмотр целевого слайда: документы с PDF нельзя держать
+            // внутри transform колоды — уходим на обычную страницу.
+            var probe = nextPos;
+            if (probe === 0) probe = n;
+            else if (probe === n + 1) probe = 1;
+            var probeSlide = originals[probe - 1];
+            if (probeSlide && probeSlide.dataset.kind === "documents" && probeSlide.dataset.url) {
+                window.location.assign(probeSlide.dataset.url);
+                return;
+            }
             pos = nextPos;
             var canAnimate = animate && !reduce;
             if (canAnimate) moving = true;
@@ -233,65 +243,83 @@
     }
 
     function startSeasonTabs() {
-        var root = document.querySelector("[data-season-tabs]");
-        if (!root) return;
-        var tabs = Array.prototype.slice.call(root.querySelectorAll("[role=tab]"));
-        var panels = Array.prototype.slice.call(root.querySelectorAll("[role=tabpanel]"));
-        if (!tabs.length) return;
+        // Только «живые» корни, не клоны колоды (aria-hidden).
+        var roots = Array.prototype.slice.call(document.querySelectorAll("[data-season-tabs]")).filter(function (root) {
+            return !root.closest('[aria-hidden="true"]');
+        });
+        if (!roots.length) return;
 
-        function show(name, updateHash) {
-            var found = false;
-            tabs.forEach(function (tab) {
-                var on = tab.getAttribute("data-tab") === name;
-                tab.setAttribute("aria-selected", on ? "true" : "false");
-                tab.tabIndex = on ? 0 : -1;
-                if (on) found = true;
-            });
-            if (!found) {
-                name = tabs[0].getAttribute("data-tab");
-                tabs[0].setAttribute("aria-selected", "true");
-                tabs[0].tabIndex = 0;
+        roots.forEach(function (root) {
+            var tabs = Array.prototype.slice.call(root.querySelectorAll(":scope > .season-tabs [role=tab], :scope .season-tabs [role=tab]"));
+            var panels = Array.prototype.slice.call(root.querySelectorAll(":scope > [role=tabpanel], :scope > .documents-panel, :scope [role=tabpanel]"));
+            // У документов панели — прямые/вложенные section.season-panel
+            if (!panels.length) {
+                panels = Array.prototype.slice.call(root.querySelectorAll(".season-panel"));
             }
-            panels.forEach(function (panel) {
-                var on = panel.id === "panel-" + name;
-                if (on) panel.removeAttribute("hidden");
-                else panel.setAttribute("hidden", "");
-            });
-            if (updateHash) {
-                var next = "#" + name;
-                if (window.location.hash !== next) {
-                    history.replaceState(null, "", next);
+            if (!tabs.length) return;
+            var isDocuments = root.hasAttribute("data-documents-tabs");
+
+            function show(name, updateHash) {
+                var found = false;
+                tabs.forEach(function (tab) {
+                    var on = tab.getAttribute("data-tab") === name;
+                    tab.setAttribute("aria-selected", on ? "true" : "false");
+                    tab.tabIndex = on ? 0 : -1;
+                    if (on) found = true;
+                });
+                if (!found) {
+                    name = tabs[0].getAttribute("data-tab");
+                    tabs[0].setAttribute("aria-selected", "true");
+                    tabs[0].tabIndex = 0;
+                }
+                panels.forEach(function (panel) {
+                    var on = panel.id === "panel-" + name;
+                    if (on) panel.removeAttribute("hidden");
+                    else panel.setAttribute("hidden", "");
+                });
+                if (updateHash) {
+                    var next = "#" + name;
+                    if (window.location.hash !== next) {
+                        history.replaceState(null, "", next);
+                    }
+                }
+                if (isDocuments && window.ryptDocumentsViewer) {
+                    requestAnimationFrame(function () {
+                        window.ryptDocumentsViewer.mountVisible(root);
+                    });
                 }
             }
-        }
 
-        var initial = (window.location.hash || "").replace("#", "");
-        show(initial || tabs[0].getAttribute("data-tab"), false);
+            var initial = (window.location.hash || "").replace("#", "");
+            show(initial || tabs[0].getAttribute("data-tab"), false);
 
-        root.addEventListener("click", function (event) {
-            var tab = event.target.closest("[role=tab]");
-            if (!tab || !root.contains(tab)) return;
-            show(tab.getAttribute("data-tab"), true);
-        });
+            root.addEventListener("click", function (event) {
+                var tab = event.target.closest("[role=tab]");
+                if (!tab || !root.contains(tab)) return;
+                event.preventDefault();
+                show(tab.getAttribute("data-tab"), true);
+            });
 
-        root.addEventListener("keydown", function (event) {
-            var tab = event.target.closest("[role=tab]");
-            if (!tab || !root.contains(tab)) return;
-            var i = tabs.indexOf(tab);
-            if (i < 0) return;
-            var next = i;
-            if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (i + 1) % tabs.length;
-            else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (i - 1 + tabs.length) % tabs.length;
-            else if (event.key === "Home") next = 0;
-            else if (event.key === "End") next = tabs.length - 1;
-            else return;
-            event.preventDefault();
-            tabs[next].focus();
-            show(tabs[next].getAttribute("data-tab"), true);
-        });
+            root.addEventListener("keydown", function (event) {
+                var tab = event.target.closest("[role=tab]");
+                if (!tab || !root.contains(tab)) return;
+                var i = tabs.indexOf(tab);
+                if (i < 0) return;
+                var next = i;
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (i + 1) % tabs.length;
+                else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (i - 1 + tabs.length) % tabs.length;
+                else if (event.key === "Home") next = 0;
+                else if (event.key === "End") next = tabs.length - 1;
+                else return;
+                event.preventDefault();
+                tabs[next].focus();
+                show(tabs[next].getAttribute("data-tab"), true);
+            });
 
-        window.addEventListener("hashchange", function () {
-            show((window.location.hash || "").replace("#", ""), false);
+            window.addEventListener("hashchange", function () {
+                show((window.location.hash || "").replace("#", ""), false);
+            });
+
         });
     }
 
@@ -359,9 +387,28 @@
         show(0);
     }
 
+    function syncShortScroll() {
+        var slides = document.querySelectorAll(".slide");
+        if (slides.length) {
+            slides.forEach(function (slide) {
+                // iframe/PDF внутри слайда: не трогаем overflow — иначе ломаются клики.
+                if (slide.querySelector("iframe, object, embed, .documents")) {
+                    slide.classList.remove("is-short");
+                    return;
+                }
+                var overflows = slide.scrollHeight > slide.clientHeight + 2;
+                slide.classList.toggle("is-short", !overflows);
+                if (!overflows) slide.scrollTop = 0;
+            });
+        }
+    }
+
     startDeck();
     startSeasonTabs();
     startPhotoStudio();
+    syncShortScroll();
+    window.addEventListener("resize", syncShortScroll);
+    window.addEventListener("load", syncShortScroll);
 
     function parseJsonScript(root, selector) {
         var node = root.querySelector(selector);

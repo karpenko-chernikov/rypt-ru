@@ -13,7 +13,7 @@ from home.models import (
 )
 
 MENU_PAGES = [
-    ("rules", "Правила"),
+    ("rules", "Документы"),
     ("partners", "Партнеры"),
     ("contacts", "Контакты"),
 ]

@@ -240,6 +240,8 @@ class ContentPage(Page):
     def get_template(self, request, *args, **kwargs):
         if self.slug == "partners":
             return "home/partners_page.html"
+        if self.slug == "rules":
+            return "home/documents_page.html"
         return super().get_template(request, *args, **kwargs)
 
     def get_context(self, request, *args, **kwargs):
@@ -248,6 +250,13 @@ class ContentPage(Page):
             from home.partners import PARTNERS
 
             context["partners"] = PARTNERS
+        if self.slug == "rules":
+            from home.documents import CHARTER_DOCX, CHARTER_HTML, REGULATION_PDF, VOK
+
+            context["regulation_pdf"] = REGULATION_PDF
+            context["charter_docx"] = CHARTER_DOCX
+            context["charter_html"] = CHARTER_HTML
+            context["vok"] = VOK
         return context
 
 

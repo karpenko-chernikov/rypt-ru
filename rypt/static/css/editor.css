@@ -89,6 +89,13 @@
     margin: 0 0 1.5rem;
 }
 
+.editor-actions-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+}
+
 .editor-btn {
     display: inline-block;
     padding: 0.55rem 0.95rem;

@@ -2,7 +2,7 @@
 {% block title %}Приглашения{% endblock %}
 {% block content %}
 <h1 class="editor-h1">Приглашения</h1>
-<p class="editor-lead">Новый редактор входит только по одноразовой ссылке. После регистрации ссылка сгорает.</p>
+<p class="editor-lead">Новый редактор входит только по одноразовой ссылке. После регистрации ссылка сгорает. Срок «0 дней» — бессрочная ссылка (пока не используют или не отзовут).</p>
 
 {% if created_url %}
 <section class="editor-section editor-invite-created">
@@ -31,10 +31,14 @@
             <div>
                 <code>{{ inv.code|slice:":10" }}…</code>
                 {% if inv.note %}<span> · {{ inv.note }}</span>{% endif %}
+                {% if inv.expires_at %}
                 <span class="editor-muted"> · до {{ inv.expires_at|date:"d.m.Y H:i" }}</span>
-                {% if inv.expires_at < now %}<span class="editor-badge">Истекло</span>{% endif %}
+                {% if inv.is_expired %}<span class="editor-badge">Истекло</span>{% endif %}
+                {% else %}
+                <span class="editor-muted"> · бессрочно</span>
+                {% endif %}
             </div>
-            {% if inv.expires_at >= now %}
+            {% if not inv.is_expired %}
             <form method="post" action="{% url 'editor:invite_revoke' inv.pk %}" onsubmit="return confirm('Отозвать приглашение?');">
                 {% csrf_token %}
                 <button type="submit" class="editor-btn">Отозвать</button>

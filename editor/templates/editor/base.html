@@ -17,8 +17,9 @@
         <nav class="editor-nav">
             {% if user.is_authenticated %}
             <a href="{% url 'editor:dashboard' %}">Сезоны</a>
-            <a href="{% url 'editor:russia_list' %}">Россия</a>
+            <a href="{% url 'editor:russia_list' %}">Турниры в России</a>
             <a href="{% url 'editor:invites' %}">Приглашения</a>
+            <a href="{% url 'editor:users' %}">Пользователи</a>
             <a href="{% url 'editor:journal' %}">Журнал</a>
             <a href="/" target="_blank" rel="noreferrer">Сайт</a>
             <span class="editor-user">{{ user.username }}</span>

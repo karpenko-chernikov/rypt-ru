@@ -4,11 +4,9 @@
 {% block body_class %}material-page{% endblock %}
 
 {% block content %}
-<article class="page">
+<article class="page page-material">
+    <p class="back"><a href="{% pageurl page.get_parent %}">← {{ page.get_parent.title }}</a></p>
     <h1>{{ page.title }}</h1>
-    <div class="prose">{{ page.body|richtext }}</div>
-    {% if page.get_parent %}
-        <p class="back"><a href="{% pageurl page.get_parent %}">К разделу «{{ page.get_parent.title }}»</a></p>
-    {% endif %}
+    <div class="prose prose-material">{{ page.body|richtext }}</div>
 </article>
 {% endblock %}

@@ -79,7 +79,13 @@ class EditorInvite(models.Model):
         verbose_name="Кто создал",
     )
     created_at = models.DateTimeField("Создано", auto_now_add=True)
-    expires_at = models.DateTimeField("Истекает", db_index=True)
+    expires_at = models.DateTimeField(
+        "Истекает",
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Пусто = бессрочно (до использования или отзыва).",
+    )
     used_at = models.DateTimeField("Использовано", null=True, blank=True)
     used_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

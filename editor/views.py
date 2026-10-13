@@ -12,7 +12,9 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 from wagtail.images.models import Image
 
-from editor.authz import user_is_editor
+from django.contrib.auth.models import User
+
+from editor.authz import grant_editor, revoke_editor, user_is_editor, user_role_label
 from editor.decorators import staff_required
 from editor.forms import (
     EditorLoginForm,
@@ -165,11 +167,12 @@ def invites(request):
             messages.error(request, "Слишком много приглашений за час.")
         else:
             days = form.cleaned_data["days_valid"]
+            expires_at = None if days == 0 else timezone.now() + timedelta(days=days)
             invite = EditorInvite.objects.create(
                 code=invite_code(),
                 note=form.cleaned_data.get("note") or "",
                 created_by=request.user,
-                expires_at=timezone.now() + timedelta(days=days),
+                expires_at=expires_at,
             )
             created_url = request.build_absolute_uri(
                 f"/dlya-redaktorov/priglashenie/{invite.code}/"
@@ -182,9 +185,15 @@ def invites(request):
                 object_type="invite",
                 object_id=invite.pk,
                 object_label=invite.code[:12] + "…",
-                payload={"days": days, "note": invite.note},
+                payload={"days": days, "note": invite.note, "permanent": days == 0},
             )
-            messages.success(request, "Одноразовая ссылка создана. Передайте её лично.")
+            if days == 0:
+                messages.success(
+                    request,
+                    "Бессрочная одноразовая ссылка создана. Передайте её лично.",
+                )
+            else:
+                messages.success(request, "Одноразовая ссылка создана. Передайте её лично.")
             form = InviteCreateForm()
     active = EditorInvite.objects.filter(revoked=False, used_at__isnull=True).order_by(
         "-created_at"
@@ -225,6 +234,63 @@ def invite_revoke(request, pk):
         )
         messages.success(request, "Приглашение отозвано.")
     return redirect("editor:invites")
+
+
+@staff_required
+def users_list(request):
+    users = User.objects.prefetch_related("groups").order_by("-date_joined", "username")
+    rows = [
+        {
+            "user": u,
+            "role": user_role_label(u),
+            "is_editor": user_is_editor(u),
+            "can_manage": (not u.is_superuser) and u.pk != request.user.pk,
+        }
+        for u in users
+    ]
+    return render(request, "editor/users.html", {"rows": rows})
+
+
+@staff_required
+@require_POST
+def user_revoke(request, pk):
+    target = get_object_or_404(User, pk=pk)
+    if target.pk == request.user.pk:
+        messages.error(request, "Нельзя отозвать доступ у себя.")
+    elif target.is_superuser:
+        messages.error(request, "Суперпользователя нельзя отозвать из кабинета.")
+    else:
+        revoke_editor(target)
+        log_change(
+            user=request.user,
+            action=EditorChangeLog.ACTION_UPDATE,
+            summary=f"Отозван доступ редактора у «{target.username}»",
+            object_type="user",
+            object_id=target.pk,
+            object_label=target.username,
+        )
+        messages.success(request, f"Доступ «{target.username}» отозван.")
+    return redirect("editor:users")
+
+
+@staff_required
+@require_POST
+def user_grant(request, pk):
+    target = get_object_or_404(User, pk=pk)
+    if target.is_superuser:
+        messages.info(request, "Суперпользователь и так входит в кабинет.")
+    else:
+        grant_editor(target)
+        log_change(
+            user=request.user,
+            action=EditorChangeLog.ACTION_UPDATE,
+            summary=f"Выдан доступ редактора «{target.username}»",
+            object_type="user",
+            object_id=target.pk,
+            object_label=target.username,
+        )
+        messages.success(request, f"Доступ «{target.username}» восстановлен.")
+    return redirect("editor:users")
 
 
 @staff_required

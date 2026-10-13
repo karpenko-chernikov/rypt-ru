@@ -304,8 +304,15 @@ main {
 .slide {
     flex: 0 0 100vw;
     width: 100vw;
-    min-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.slide.is-short {
+    overflow-y: hidden;
 }
 
 .hero {
@@ -369,9 +376,16 @@ main {
 }
 
 .page {
-    padding: 6.5rem 1.4rem 8rem;
+    padding: 6.5rem 1.4rem 5.5rem;
     max-width: 42rem;
     margin: 0 auto;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.page-material {
+    max-width: 46rem;
+    padding-bottom: 4rem;
 }
 
 .page.season,
@@ -382,6 +396,60 @@ main {
 .slide article.page:has(.russia-map),
 .page.page-russia {
     max-width: min(1280px, 98vw);
+}
+
+.slide article.page:has(.documents),
+.page.page-documents {
+    max-width: min(120rem, calc(100vw - 1.5rem));
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 6.5rem;
+}
+
+/* Документы вне колоды: вьюер занимает оставшуюся высоту окна, без «съезда» под меню.
+   Явная высота на article (не % от main) — иначе iframe/PDF схлопывается после пересчёта. */
+html:has(body.documents-route),
+html:has(.page-documents .documents) {
+    height: 100%;
+    overflow: hidden;
+}
+
+body.documents-route,
+body:has(.page-documents .documents) {
+    overflow: hidden;
+    height: 100dvh;
+    max-height: 100dvh;
+}
+
+body.documents-route main,
+body:has(.page-documents .documents) main {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+}
+
+.page.page-documents {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.page.page-documents > h1 {
+    flex: 0 0 auto;
+}
+
+.page.page-documents .documents {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
 }
 
 .page h1 {
@@ -405,7 +473,96 @@ main {
 
 .prose { font-size: 1.05rem; max-width: 38rem; color: var(--fg); }
 .prose a { border-bottom: 1px solid var(--fg); text-decoration: none; }
+.prose a:hover { color: var(--gold); border-bottom-color: var(--gold); }
 .prose p { margin: 0 0 0.9rem; }
+.prose h2 {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 1.85rem 0 0.7rem;
+}
+.prose h3 {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 1.35rem 0 0.55rem;
+}
+.prose ul,
+.prose ol {
+    margin: 0 0 1.1rem;
+    padding: 0 0 0 1.15rem;
+}
+.prose li {
+    margin: 0 0 0.55rem;
+    line-height: 1.5;
+}
+.prose li::marker {
+    color: var(--gold);
+}
+
+.prose-material {
+    max-width: 44rem;
+}
+.prose-material > ul,
+.prose-material > ol {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+.prose-material > ul > li,
+.prose-material > ol > li {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    line-height: 1.45;
+}
+.prose-material ul ul,
+.prose-material ol ol,
+.prose-material ul ol,
+.prose-material ol ul {
+    list-style: disc;
+    padding-left: 1.2rem;
+    margin: 0.55rem 0 0;
+    display: block;
+    gap: 0;
+}
+.prose-material ul ul > li,
+.prose-material ol ol > li,
+.prose-material ul ol > li,
+.prose-material ol ul > li {
+    padding: 0.2rem 0;
+    border: 0;
+    background: transparent;
+}
+.prose-material a {
+    overflow-wrap: anywhere;
+}
+.prose-material > ul > li > a,
+.prose-material > ol > li > a,
+.prose-material li a:not([href^="#"]) {
+    border-bottom-color: transparent;
+    color: var(--gold);
+    font-weight: 600;
+}
+.prose-material li a:hover {
+    border-bottom-color: var(--gold);
+}
+.prose-material embed,
+.prose-material img {
+    max-width: 100%;
+    height: auto;
+    margin: 0.8rem 0 1.2rem;
+    border: 1px solid var(--line);
+}
 
 .when, .back {
     font-size: 0.82rem;
@@ -559,6 +716,239 @@ main {
 
 .season-panel > h2:first-child {
     margin-top: 0;
+}
+
+.documents {
+    margin-top: 0.35rem;
+}
+
+.documents > .season-tabs {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 6;
+    /* Непрозрачный фон: native PDF в iframe не перехватывает клики по вкладкам */
+    background: var(--bg);
+    margin-bottom: 0;
+    padding-bottom: 0.85rem;
+}
+
+.documents-h2 {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 0.35rem 0 0.45rem;
+}
+
+.documents-lead {
+    margin: 0 0 0.85rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.documents-lead a {
+    color: var(--gold, #d9b24a);
+}
+
+.documents-toolbar {
+    flex: 0 0 auto;
+}
+
+.documents-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.documents-panel[hidden] {
+    display: none !important;
+}
+
+.documents-viewer {
+    flex: 1 1 auto;
+    min-height: max(18rem, 42vh);
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--line);
+    background: rgb(0 0 0 / 0.22);
+    border-radius: 1px;
+    position: relative;
+    z-index: 0;
+}
+
+.documents-viewer.is-loading::after {
+    content: "Загрузка…";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.documents-pdf-pages {
+    padding: 0.5rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.documents-pdf-page {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #fff;
+    box-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+}
+
+.documents-html-sheet {
+    padding: 1.25rem clamp(1rem, 3vw, 2.5rem) 2.5rem;
+    max-width: none;
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--fg);
+    line-height: 1.55;
+    columns: 1;
+}
+
+.documents-html-sheet h2,
+.documents-html-sheet h3 {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 800;
+    margin: 1.35rem 0 0.65rem;
+}
+
+.documents-html-sheet h2 { font-size: 1.45rem; }
+.documents-html-sheet h3 { font-size: 1.15rem; color: var(--gold); }
+.documents-html-sheet .a-center { text-align: center; }
+.documents-html-sheet .a-right { text-align: right; }
+.documents-html-sheet .muted { color: var(--muted); font-size: 0.9rem; margin: 0 0 0.25rem; }
+.documents-html-sheet p { margin: 0 0 0.7rem; font-size: 0.98rem; }
+.documents-html-sheet ul {
+    margin: 0 0 0.9rem;
+    padding: 0 0 0 1.2rem;
+}
+.documents-html-sheet li { margin: 0 0 0.35rem; }
+
+.documents-viewer-error {
+    margin: 1.5rem;
+    color: var(--muted);
+}
+
+.documents-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+    gap: 1.25rem 1.25rem;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.documents-main {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.vok-panel {
+    align-self: start;
+    max-height: 100%;
+    overflow: auto;
+    padding: 1rem 1.05rem 1.1rem;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+}
+
+.vok-panel .documents-h2 {
+    font-size: 1.35rem;
+    margin-top: 0;
+}
+
+.vok-panel .documents-lead {
+    font-size: 0.88rem;
+}
+
+.vok-list {
+    list-style: none;
+    margin: 0.35rem 0 0;
+    padding: 0;
+}
+
+.vok-list li {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.vok-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.vok-role {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--gold, #d9b24a);
+}
+
+.vok-names {
+    line-height: 1.4;
+    font-size: 0.92rem;
+}
+
+.vok-note {
+    margin-top: -0.25rem;
+}
+
+@media (max-width: 900px) {
+    body.documents-route,
+    body:has(.page-documents .documents) {
+        overflow: auto;
+        height: auto;
+    }
+
+    body.documents-route main,
+    body:has(.page-documents .documents) main {
+        height: auto;
+        overflow: visible;
+    }
+
+    .page.page-documents {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .documents-split {
+        grid-template-columns: 1fr;
+    }
+
+    .vok-panel {
+        order: -1;
+        max-height: none;
+    }
+
+    .documents-viewer {
+        flex: none;
+        height: min(70vh, 34rem);
+        min-height: 16rem;
+    }
+
+    .documents > .season-tabs {
+        position: sticky;
+        top: 0;
+    }
 }
 
 .season-list {
@@ -939,16 +1329,19 @@ main {
     position: fixed;
     left: 50%;
     bottom: 1.35rem;
-    z-index: 20;
+    z-index: 30;
     width: max-content;
     max-width: calc(100vw - 1.8rem);
+    /* Свой compositing-слой поверх PDF iframe */
+    transform: translate3d(-50%, 0, 0);
+    isolation: isolate;
 }
 
 .rail-glass {
     --gx: 50%;
     --gy: 0px;
     position: relative;
-    transform: translateX(-50%);
+    transform: none;
     background: var(--glass);
     backdrop-filter: blur(22px) saturate(1.7);
     -webkit-backdrop-filter: blur(22px) saturate(1.7);

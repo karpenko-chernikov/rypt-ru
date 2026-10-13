@@ -62,7 +62,7 @@
                 <div class="deck-view">
                     <div class="deck" data-index="{{ slide_index }}">
                         {% for slide in slides %}
-                            <section class="slide" data-url="{{ slide.url }}" data-title="{% if slide.kind == 'home' %}Российский Турнир Юных Физиков{% else %}{{ slide.title }} — Российский Турнир Юных Физиков{% endif %}">
+                            <section class="slide" data-url="{{ slide.url }}" data-kind="{{ slide.kind }}" data-title="{% if slide.kind == 'home' %}Российский Турнир Юных Физиков{% else %}{{ slide.title }} — Российский Турнир Юных Физиков{% endif %}">
                                 {% if slide.kind == 'home' %}
                                     <section class="hero">
                                         <div class="hero-stage">
@@ -77,7 +77,7 @@
                                         </div>
                                     </section>
                                 {% else %}
-                                    <article class="page">
+                                    <article class="page{% if slide.kind == 'documents' %} page-documents{% endif %}">
                                         <h1>{{ slide.title }}</h1>
                                         {% if slide.kind == 'news' %}
                                             {% if slide.intro %}
@@ -104,6 +104,10 @@
                                             {% include "home/includes/materials_list.html" with groups=slide.groups %}
                                         {% elif slide.kind == 'partners' %}
                                             {% include "home/includes/partners_grid.html" with title=slide.title partners=slide.partners %}
+                                        {% elif slide.kind == 'documents' %}
+                                            {# Без iframe в колоде: transform ломает PDF-просмотр и клики #}
+                                            <p class="documents-lead">Регламент турнира, устав общественного движения и состав ВОК.</p>
+                                            <p><a class="season-tab" href="{{ slide.url }}">Открыть раздел «Документы»</a></p>
                                         {% elif slide.body %}
                                             <div class="prose">{{ slide.body|richtext }}</div>
                                         {% endif %}
@@ -134,6 +138,7 @@
             </div>
         </nav>
         <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+        {% block scripts %}{% endblock %}
         <script src="{% static 'js/rypt.js' %}"></script>
     </body>
 </html>

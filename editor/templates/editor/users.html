@@ -1,0 +1,40 @@
+{% extends "editor/base.html" %}
+{% block title %}Пользователи{% endblock %}
+{% block content %}
+<h1 class="editor-h1">Пользователи</h1>
+<p class="editor-lead">Кто зарегистрирован в Django. «Редактор» — группа Editors, доступ в кабинет. «Отозвать» забирает доступ; «Вернуть» снова выдаёт.</p>
+
+<section class="editor-section">
+    {% if rows %}
+    <ul class="editor-list">
+        {% for row in rows %}
+        <li>
+            <div>
+                <strong>{{ row.user.username }}</strong>
+                <span class="editor-badge">{{ row.role }}</span>
+                {% if row.user.is_active %}{% else %}<span class="editor-badge">Неактивен</span>{% endif %}
+                <span class="editor-muted"> · с {{ row.user.date_joined|date:"d.m.Y" }}</span>
+            </div>
+            {% if row.can_manage %}
+            <div class="editor-actions-inline">
+                {% if row.is_editor %}
+                <form method="post" action="{% url 'editor:user_revoke' row.user.pk %}" onsubmit="return confirm('Отозвать доступ редактора у {{ row.user.username }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="editor-btn">Отозвать</button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'editor:user_grant' row.user.pk %}" onsubmit="return confirm('Вернуть доступ редактора {{ row.user.username }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="editor-btn editor-btn-primary">Вернуть</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="editor-empty">Пользователей нет.</p>
+    {% endif %}
+</section>
+{% endblock %}

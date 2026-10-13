@@ -40,9 +40,10 @@ class InviteCreateForm(forms.Form):
     )
     days_valid = forms.IntegerField(
         label="Срок действия (дней)",
-        min_value=1,
-        max_value=30,
+        min_value=0,
+        max_value=365,
         initial=7,
+        help_text="0 = бессрочно (ссылка живёт до регистрации или отзыва). Иначе — сколько дней.",
     )
 
 

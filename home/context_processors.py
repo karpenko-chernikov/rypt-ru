@@ -9,6 +9,7 @@ from home.models import (
     TournamentPage,
     load_russia_svg,
 )
+from home.documents import CHARTER_DOCX, CHARTER_HTML, REGULATION_PDF, VOK
 from home.partners import PARTNERS
 from home.regions import REGIONS
 import json
@@ -16,7 +17,7 @@ import json
 NAV_SLUGS = [
     ("news", "Новости"),
     ("tournaments", "Сезоны"),
-    ("rules", "Правила"),
+    ("rules", "Документы"),
     ("russia", "Турниры в России"),
     ("materials", "Полезные материалы"),
     ("partners", "Партнеры"),
@@ -134,6 +135,18 @@ def site_nav(request):
                             "partners": PARTNERS,
                         }
                     )
+                elif slug == "rules":
+                    slides.append(
+                        {
+                            "title": title,
+                            "url": page.get_url(request=request),
+                            "kind": "documents",
+                            "regulation_pdf": REGULATION_PDF,
+                            "charter_docx": CHARTER_DOCX,
+                            "charter_html": CHARTER_HTML,
+                            "vok": VOK,
+                        }
+                    )
                 else:
                     slides.append(
                         {
@@ -147,10 +160,14 @@ def site_nav(request):
     path = request.path
     slide_index = 0
     is_deck = False
+    current_kind = None
     for i, slide in enumerate(slides):
         if _same_path(slide["url"], path):
             slide_index = i
-            is_deck = True
+            current_kind = slide.get("kind")
+            # PDF/iframe внутри CSS-transform колоды ломает клики и масштаб —
+            # документы всегда как обычная страница.
+            is_deck = current_kind != "documents"
             break
     for i, slide in enumerate(slides):
         url = (slide.get("url") or "/").rstrip("/") or "/"

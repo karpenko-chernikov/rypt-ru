@@ -1,0 +1,68 @@
+{% load static %}
+<div class="documents" data-season-tabs data-documents-tabs>
+    <div class="season-tabs" role="tablist" aria-label="Разделы документов">
+        <button type="button" class="season-tab" role="tab" id="tab-pravila" aria-controls="panel-pravila" aria-selected="true" data-tab="pravila">
+            <span class="radio" aria-hidden="true"></span>
+            Правила турнира
+        </button>
+        <button type="button" class="season-tab" role="tab" id="tab-dvizhenie" aria-controls="panel-dvizhenie" aria-selected="false" data-tab="dvizhenie" tabindex="-1">
+            <span class="radio" aria-hidden="true"></span>
+            Общественное движение
+        </button>
+    </div>
+
+    <section class="season-panel documents-panel" role="tabpanel" id="panel-pravila" aria-labelledby="tab-pravila">
+        <div class="documents-toolbar">
+            <h2 class="documents-h2">Регламент</h2>
+            <p class="documents-lead">
+                Открытый Всероссийский турнир юных физиков — действующий регламент.
+                <a href="{% static regulation_pdf %}" target="_blank" rel="noopener">Открыть PDF</a>
+                ·
+                <a href="{% static regulation_pdf %}" download>Скачать</a>
+            </p>
+        </div>
+        <div
+            class="documents-viewer"
+            data-doc-viewer="pdf"
+            data-src="{% static regulation_pdf %}"
+            role="region"
+            aria-label="Регламент, просмотр"
+        ></div>
+    </section>
+
+    <section class="season-panel documents-panel" role="tabpanel" id="panel-dvizhenie" aria-labelledby="tab-dvizhenie" hidden>
+        <div class="documents-split">
+            <div class="documents-main">
+                <div class="documents-toolbar">
+                    <h2 class="documents-h2">Устав общественного движения</h2>
+                    <p class="documents-lead">
+                        <a href="{% static charter_html %}" target="_blank" rel="noopener">Открыть</a>
+                        ·
+                        <a href="{% static charter_docx %}" download>Скачать DOCX</a>
+                    </p>
+                </div>
+                <div
+                    class="documents-viewer is-html"
+                    data-doc-viewer="html"
+                    data-src="{% static charter_html %}"
+                    role="region"
+                    aria-label="Устав, просмотр"
+                ></div>
+            </div>
+
+            <aside class="vok-panel" aria-label="{{ vok.title }}">
+                <h2 class="documents-h2">{{ vok.title }}</h2>
+                <p class="documents-lead">{{ vok.full_title }}</p>
+                {% if vok.note %}<p class="documents-lead vok-note">{{ vok.note }}</p>{% endif %}
+                <ul class="vok-list">
+                    {% for item in vok.roles %}
+                    <li>
+                        <span class="vok-role">{{ item.role }}</span>
+                        <span class="vok-names">{{ item.names|join:", " }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </aside>
+        </div>
+    </section>
+</div>
