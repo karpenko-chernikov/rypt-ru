@@ -105,6 +105,8 @@
                                             {% include "home/includes/materials_list.html" with groups=slide.groups %}
                                         {% elif slide.kind == 'partners' %}
                                             {% include "home/includes/partners_grid.html" with title=slide.title partners=slide.partners %}
+                                        {% elif slide.kind == 'contacts' %}
+                                            {% include "home/includes/contacts_list.html" with sections=slide.sections %}
                                         {% elif slide.kind == 'documents' %}
                                             {# Без iframe в колоде: transform ломает PDF-просмотр и клики #}
                                             <p class="documents-lead">Регламент турнира, устав общественного движения и состав ВОК.</p>

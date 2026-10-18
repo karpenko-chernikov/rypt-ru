@@ -1,4 +1,5 @@
 from home.models import (
+    ContactsPage,
     ContentPage,
     HomePage,
     MaterialsIndexPage,
@@ -61,6 +62,7 @@ def site_nav(request):
         materials_page = (
             MaterialsIndexPage.objects.child_of(home).live().public().first()
         )
+        contacts_page = ContactsPage.objects.child_of(home).live().public().first()
         tournament_index = TournamentIndexPage.objects.child_of(home).live().first()
         slides.append(
             {
@@ -123,6 +125,18 @@ def site_nav(request):
                             "kind": "materials",
                             "intro": materials_page.intro,
                             "groups": materials_page.groups_data(),
+                        }
+                    )
+                continue
+            if slug == "contacts":
+                if contacts_page:
+                    items.append({"title": title, "page": contacts_page, "url": None})
+                    slides.append(
+                        {
+                            "title": title,
+                            "url": contacts_page.get_url(request=request),
+                            "kind": "contacts",
+                            "sections": contacts_page.sections_data(),
                         }
                     )
                 continue

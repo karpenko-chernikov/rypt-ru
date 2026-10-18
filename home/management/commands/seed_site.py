@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 from wagtail.models import Site
 
 from home.models import (
+    ContactsPage,
     ContentPage,
     HomePage,
     MaterialsIndexPage,
@@ -15,7 +16,6 @@ from home.models import (
 MENU_PAGES = [
     ("rules", "Правила"),
     ("partners", "Партнеры"),
-    ("contacts", "Контакты"),
 ]
 
 
@@ -112,6 +112,15 @@ class Command(BaseCommand):
                 page.title = title
                 page.body = ""
             page.save_revision().publish()
+
+        contacts = ContactsPage.objects.child_of(home).first()
+        if not contacts:
+            contacts = ContactsPage(title="Контакты", slug="contacts")
+            home.add_child(instance=contacts)
+        else:
+            contacts.title = "Контакты"
+            contacts.slug = "contacts"
+        contacts.save_revision().publish()
 
         tournaments = TournamentIndexPage.objects.child_of(home).first()
         if not tournaments:

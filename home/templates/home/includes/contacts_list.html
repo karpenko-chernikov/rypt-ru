@@ -1,0 +1,36 @@
+<div class="contacts-page">
+    {% for section in sections %}
+        <section class="contacts-section">
+            <h2 class="contacts-section-title">{{ section.title }}</h2>
+            <ul class="contacts-grid">
+                {% for contact in section.contacts %}
+                    <li class="contact-card">
+                        {% if contact.photo_url %}
+                            <span class="contact-avatar" aria-hidden="true">
+                                <img src="{{ contact.photo_url }}" alt="" loading="lazy" decoding="async">
+                            </span>
+                        {% endif %}
+                        <span class="contact-body">
+                            <span class="contact-name">{{ contact.name }}</span>
+                            {% if contact.subtitle %}
+                                <span class="contact-subtitle">{{ contact.subtitle }}</span>
+                            {% endif %}
+                            {% if contact.methods %}
+                                <dl class="contact-methods">
+                                    {% for method in contact.methods %}
+                                        <div class="contact-method">
+                                            <dt class="contact-method-type">{{ method.type }}</dt>
+                                            <dd class="contact-method-value">{{ method.value }}</dd>
+                                        </div>
+                                    {% endfor %}
+                                </dl>
+                            {% endif %}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% empty %}
+        <p class="contacts-empty">Контакты пока не заполнены.</p>
+    {% endfor %}
+</div>

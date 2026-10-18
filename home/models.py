@@ -10,10 +10,11 @@ from django.core.exceptions import ValidationError
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
-from wagtail.fields import RichTextField
+from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable, Page
 from wagtail.rich_text import expand_db_html
 
+from home.blocks import ContactsSectionBlock
 from home.regions import REGION_CHOICES, REGIONS
 
 # Синтетический столбец матрицы / карточка (не субъект РФ на карте).
@@ -562,6 +563,54 @@ class ContentPage(Page):
             context["charter_html"] = CHARTER_HTML
             context["vok"] = VOK
         return context
+
+
+class ContactsPage(Page):
+    """Страница «Контакты»: блоки с контактами, заполняемые через Wagtail."""
+
+    sections = StreamField(
+        [("contacts_section", ContactsSectionBlock())],
+        verbose_name="Блоки",
+        blank=True,
+    )
+
+    content_panels = Page.content_panels + [FieldPanel("sections")]
+    parent_page_types = ["home.HomePage"]
+    subpage_types = []
+    max_count = 1
+
+    def sections_data(self):
+        """Список блоков с контактами и готовыми URL аватарок для шаблона."""
+        data = []
+        for block in self.sections:
+            if block.block_type != "contacts_section":
+                continue
+            contacts = []
+            for contact in block.value.get("contacts") or []:
+                methods = [
+                    {"type": method.get("type", ""), "value": method.get("value", "")}
+                    for method in contact.get("methods") or []
+                ]
+                photo = contact.get("photo")
+                contacts.append(
+                    {
+                        "name": contact.get("name", ""),
+                        "subtitle": contact.get("subtitle", ""),
+                        "photo_url": (
+                            photo.get_rendition("fill-256x256-c100").url
+                            if photo
+                            else ""
+                        ),
+                        "methods": methods,
+                    }
+                )
+            data.append(
+                {
+                    "title": block.value.get("title", ""),
+                    "contacts": contacts,
+                }
+            )
+        return data
 
 
 class MaterialsIndexPage(Page):

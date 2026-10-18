@@ -1889,6 +1889,119 @@ main {
     }
 }
 
+/* —— Контакты —— */
+.page.page-contacts,
+.slide article.page:has(.contacts-page) {
+    max-width: min(72rem, 98vw);
+}
+
+.contacts-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2.2rem;
+}
+
+.contacts-section {
+    min-width: 0;
+}
+
+.contacts-section-title {
+    margin: 0 0 1rem;
+    font-family: "Alumni Sans", "Segoe UI", sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+}
+
+.contacts-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+    align-items: stretch;
+}
+
+.contact-card {
+    display: flex;
+    gap: 0.9rem;
+    min-width: 0;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.contact-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+}
+
+.contact-avatar {
+    flex: 0 0 auto;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--bar);
+}
+
+.contact-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.contact-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.contact-name {
+    font-weight: 600;
+    font-size: 1.02rem;
+    line-height: 1.3;
+}
+
+.contact-subtitle {
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+.contact-methods {
+    margin: 0.35rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.contact-method {
+    display: grid;
+    grid-template-columns: minmax(4.5rem, auto) 1fr;
+    gap: 0.5rem;
+    font-size: 0.86rem;
+}
+
+.contact-method-type {
+    margin: 0;
+    color: var(--muted);
+}
+
+.contact-method-value {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.contacts-empty {
+    color: var(--muted);
+}
+
 /* —— Документы (вне колоды: PDF/HTML viewer) —— */
 .slide article.page:has(.documents),
 .page.page-documents {
