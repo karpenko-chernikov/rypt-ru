@@ -43,6 +43,48 @@ SECURE_SSL_REDIRECT = True
 # Content-Security-Policy (базовая; fonts.googleapis.com для кабинета)
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
+# Логи в stderr → systemd/gunicorn → journalctl.
+# Без этого django.request при DEBUG=False пишет только в mail_admins,
+# и ошибки 500 не видны в journalctl.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "home": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
+
 try:
     from .local import *
 except ImportError:

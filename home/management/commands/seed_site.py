@@ -11,6 +11,7 @@ from home.models import (
     NewsPage,
     RussiaTournamentsPage,
     TournamentIndexPage,
+    TrainingBoardPage,
 )
 
 MENU_PAGES = [
@@ -121,6 +122,19 @@ class Command(BaseCommand):
             contacts.title = "Контакты"
             contacts.slug = "contacts"
         contacts.save_revision().publish()
+
+        training_board = TrainingBoardPage.objects.child_of(home).first()
+        if not training_board:
+            training_board = TrainingBoardPage(
+                title="Доска заявок",
+                slug="training-board",
+                intro="",
+            )
+            home.add_child(instance=training_board)
+        else:
+            training_board.title = "Доска заявок"
+            training_board.slug = "training-board"
+        training_board.save_revision().publish()
 
         tournaments = TournamentIndexPage.objects.child_of(home).first()
         if not tournaments:

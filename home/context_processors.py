@@ -8,6 +8,7 @@ from home.models import (
     RussiaTournamentsPage,
     TournamentIndexPage,
     TournamentPage,
+    TrainingBoardPage,
     build_russia_problems_matrix,
     load_russia_svg,
 )
@@ -21,6 +22,7 @@ NAV_SLUGS = [
     ("tournaments", "Сезоны"),
     ("rules", "Документы"),
     ("russia", "Турниры в России"),
+    ("training-board", "Доска заявок"),
     ("materials", "Полезные материалы"),
     ("partners", "Партнеры"),
     ("contacts", "Контакты"),
@@ -63,6 +65,7 @@ def site_nav(request):
             MaterialsIndexPage.objects.child_of(home).live().public().first()
         )
         contacts_page = ContactsPage.objects.child_of(home).live().public().first()
+        training_board = TrainingBoardPage.objects.child_of(home).live().public().first()
         tournament_index = TournamentIndexPage.objects.child_of(home).live().first()
         slides.append(
             {
@@ -140,6 +143,17 @@ def site_nav(request):
                         }
                     )
                 continue
+            if slug == "training-board":
+                if training_board:
+                    items.append({"title": title, "page": training_board, "url": None})
+                    slides.append(
+                        {
+                            "title": title,
+                            "url": training_board.get_url(request=request),
+                            "kind": "training_board",
+                        }
+                    )
+                continue
             page = pages.get(slug)
             if page:
                 items.append({"title": title, "page": page, "url": None})
@@ -182,7 +196,7 @@ def site_nav(request):
             slide_index = i
             # PDF/iframe внутри CSS-transform колоды ломает клики и масштаб —
             # документы всегда как обычная страница.
-            is_deck = slide.get("kind") != "documents"
+            is_deck = slide.get("kind") not in ("documents", "training_board")
             break
     for i, slide in enumerate(slides):
         url = (slide.get("url") or "/").rstrip("/") or "/"

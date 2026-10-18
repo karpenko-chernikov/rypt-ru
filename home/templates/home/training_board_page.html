@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block body_class %}training-board-page{% endblock %}
+
+{% block content %}
+<article class="page page-training-board">
+    <h1>{{ page.title }}</h1>
+
+    {% if page.intro %}
+        <div class="prose">{{ page.intro|richtext }}</div>
+    {% endif %}
+
+    {% if request.GET.created %}
+        <p class="board-notice board-notice--ok">Объявление опубликовано. Сохраните пароль — без него объявление не удалить.</p>
+    {% endif %}
+    {% if request.GET.deleted %}
+        <p class="board-notice board-notice--ok">Объявление удалено.</p>
+    {% endif %}
+    {% if board_error %}
+        <p class="board-notice board-notice--error">{{ board_error }}</p>
+    {% endif %}
+
+    <section class="board-cards">
+        <h2>Объявления</h2>
+        {% if cards %}
+            {% for card in cards %}
+                <article class="board-card" id="card-{{ card.id }}">
+                    <h3>{{ card.team_name }}</h3>
+                    <dl class="board-card-facts">
+                        <div class="board-card-fact">
+                            <dt>Примерные даты</dt>
+                            <dd>{{ card.dates }}</dd>
+                        </div>
+                        <div class="board-card-fact">
+                            <dt>Город (или онлайн)</dt>
+                            <dd>{{ card.city }}</dd>
+                        </div>
+                        {% if card.tasks %}
+                            <div class="board-card-fact">
+                                <dt>Пожелания по заданиям</dt>
+                                <dd>{{ card.tasks|linebreaksbr }}</dd>
+                            </div>
+                        {% endif %}
+                        {% if card.comments %}
+                            <div class="board-card-fact">
+                                <dt>Комментарии</dt>
+                                <dd>{{ card.comments|linebreaksbr }}</dd>
+                            </div>
+                        {% endif %}
+                        <div class="board-card-fact">
+                            <dt>Имя и контакты руководителя команды</dt>
+                            <dd>{{ card.contact|linebreaksbr }}</dd>
+                        </div>
+                    </dl>
+                    <p class="board-card-date">Добавлено {{ card.created_at|date:"d.m.Y" }}</p>
+
+                    <details class="board-delete">
+                        <summary>Удалить объявление</summary>
+                        <form method="post" class="board-delete-form" data-delete-form>
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="card_id" value="{{ card.id }}">
+                            <input type="hidden" name="token" value="{{ card.delete_token }}">
+                            <div class="field">
+                                <label for="delete-password-{{ card.id }}">Пароль</label>
+                                <input type="password" name="password" id="delete-password-{{ card.id }}" autocomplete="current-password" required>
+                            </div>
+                            <button type="submit" class="board-delete-submit" data-delete-submit disabled>Удалить</button>
+                        </form>
+                    </details>
+                </article>
+            {% endfor %}
+        {% else %}
+            <p class="board-empty">Объявлений пока нет. Будьте первыми!</p>
+        {% endif %}
+    </section>
+
+    <section class="board-form">
+        <h2>Создать объявление</h2>
+        <p class="board-form-lead">
+            Создайте объявление. Его увидят все посетители сайта и смогут связаться с вами,
+            если заинтересуются тренировочным боем с вашей командой. Если объявление станет
+            неактуально (найдете участников боя или передумаете), пожалуйста, удалите своё
+            объявление. Объявления старше 3 месяцев могут быть удалены администрацией.
+        </p>
+
+        <form method="post" class="board-create-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            {{ create_form.website }}
+
+            {% if create_form.non_field_errors %}
+                <div class="field-errors">
+                    {% for error in create_form.non_field_errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in create_form.visible_fields %}
+                <div class="field{% if field.errors %} has-errors{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+                    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="board-submit">Опубликовать объявление</button>
+        </form>
+    </section>
+
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        document.querySelectorAll("[data-delete-form]").forEach(function (form) {
+            var btn = form.querySelector("[data-delete-submit]");
+            if (!btn) return;
+            var left = 5;
+            var render = function () {
+                btn.textContent = left > 0 ? "Удалить (" + left + " с)" : "Удалить";
+            };
+            render();
+            var timer = setInterval(function () {
+                left -= 1;
+                if (left <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    render();
+                } else {
+                    render();
+                }
+            }, 1000);
+        });
+    })();
+</script>
+{% endblock %}

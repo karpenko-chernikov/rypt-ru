@@ -2289,3 +2289,203 @@ body:has(.page-documents .documents) main {
         top: 0;
     }
 }
+
+/* —— Доска заявок на тренировочные бои —— */
+.page-training-board {
+    max-width: 46rem;
+}
+
+.page-training-board h2 {
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-weight: 800;
+    font-size: 1.7rem;
+    letter-spacing: 0.02em;
+    margin: 2.2rem 0 1rem;
+}
+
+.board-notice {
+    margin: 0 0 1rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    font-size: 0.95rem;
+}
+
+.board-notice--ok {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+.board-notice--error {
+    border-color: rgba(224, 108, 108, 0.55);
+    color: #e06c6c;
+}
+
+.board-form-lead {
+    color: var(--muted);
+    font-size: 0.92rem;
+    max-width: 38rem;
+    margin: 0 0 1.2rem;
+}
+
+.board-create-form {
+    display: grid;
+    gap: 1rem;
+    margin-top: 0.6rem;
+}
+
+.field {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.field label {
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.field input[type="text"],
+.field input[type="password"],
+.field textarea {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    background: var(--glass);
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.98rem;
+    resize: vertical;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgb(217 178 74 / 0.18);
+}
+
+.field.has-errors input,
+.field.has-errors textarea {
+    border-color: rgba(224, 108, 108, 0.6);
+}
+
+.hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.field-error {
+    margin: 0;
+    color: #e06c6c;
+    font-size: 0.85rem;
+}
+
+.board-submit,
+.board-delete-submit {
+    justify-self: start;
+    padding: 0.75rem 1.4rem;
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--gold);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.board-submit:hover,
+.board-delete-submit:not(:disabled):hover {
+    background: var(--gold);
+    color: #222;
+}
+
+.board-delete-submit:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.board-cards {
+    display: grid;
+    gap: 1rem;
+}
+
+.board-card {
+    border: 1px solid var(--line);
+    border-radius: 0.9rem;
+    padding: 1.1rem 1.2rem;
+    background: var(--glass);
+}
+
+.board-card h3 {
+    margin: 0 0 0.7rem;
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-weight: 800;
+    font-size: 1.45rem;
+    letter-spacing: 0.01em;
+    line-height: 1;
+}
+
+.board-card-facts {
+    margin: 0;
+    display: grid;
+    gap: 0.55rem;
+}
+
+.board-card-fact {
+    display: grid;
+    gap: 0.1rem;
+}
+
+.board-card-fact dt {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.board-card-fact dd {
+    margin: 0;
+    font-size: 0.98rem;
+}
+
+.board-card-date {
+    margin: 0.8rem 0 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.board-empty {
+    color: var(--muted);
+}
+
+.board-delete {
+    margin-top: 0.9rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.7rem;
+}
+
+.board-delete summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.85rem;
+    list-style: none;
+}
+
+.board-delete summary::-webkit-details-marker {
+    display: none;
+}
+
+.board-delete summary:hover {
+    color: var(--fg);
+}
+
+.board-delete-form {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.7rem;
+}

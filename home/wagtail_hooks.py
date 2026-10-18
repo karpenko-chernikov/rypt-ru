@@ -5,6 +5,22 @@ from wagtail.admin.rich_text.converters.html_to_contentstate import (
     InlineStyleElementHandler,
 )
 from wagtail.admin.rich_text.editors.draftail.features import InlineStyleFeature
+from wagtail.snippets.models import register_snippet
+from wagtail.snippets.views.snippets import SnippetViewSet
+
+from home.models import TrainingBoardCard
+
+
+class TrainingBoardCardViewSet(SnippetViewSet):
+    """Админка Wagtail: список и удаление объявлений с доски заявок."""
+
+    model = TrainingBoardCard
+    list_display = ("team_name", "dates", "city", "created_at")
+    ordering = ("-created_at",)
+    search_fields = ("team_name", "city", "contact", "comments")
+
+
+register_snippet(TrainingBoardCard, viewset=TrainingBoardCardViewSet)
 
 
 @hooks.register("register_rich_text_features")

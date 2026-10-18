@@ -128,13 +128,17 @@
 
         function go(nextPos, animate) {
             if (moving && animate) return;
-            // Документы с PDF нельзя держать внутри transform колоды —
-            // уходим на обычную страницу.
+            // «Документы» (PDF) и «Доска заявок» (форма/объявления) не живут
+            // внутри transform-колоды — уходим на обычную страницу.
             var probe = nextPos;
             if (probe === 0) probe = n;
             else if (probe === n + 1) probe = 1;
             var probeSlide = originals[probe - 1];
-            if (probeSlide && probeSlide.dataset.kind === "documents" && probeSlide.dataset.url) {
+            if (
+                probeSlide &&
+                (probeSlide.dataset.kind === "documents" || probeSlide.dataset.kind === "training_board") &&
+                probeSlide.dataset.url
+            ) {
                 window.location.assign(probeSlide.dataset.url);
                 return;
             }

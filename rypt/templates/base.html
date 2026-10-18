@@ -111,6 +111,10 @@
                                             {# Без iframe в колоде: transform ломает PDF-просмотр и клики #}
                                             <p class="documents-lead">Регламент турнира, устав общественного движения и состав ВОК.</p>
                                             <p><a class="season-tab" href="{{ slide.url }}">Открыть раздел «Документы»</a></p>
+                                        {% elif slide.kind == 'training_board' %}
+                                            {# Форма и список объявлений не живут внутри transform-колоды — уходим на обычную страницу #}
+                                            <p class="documents-lead">Форма создания и список объявлений о тренировочных боях.</p>
+                                            <p><a class="season-tab" href="{{ slide.url }}">Открыть раздел «Доска заявок»</a></p>
                                         {% elif slide.body %}
                                             <div class="prose">{{ slide.body|richtext }}</div>
                                         {% endif %}

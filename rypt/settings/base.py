@@ -91,6 +91,13 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        # SQLite + несколько процессов gunicorn: даём транзакциям дождаться
+        # блокировки и включаем WAL, чтобы чтение не мешало записи
+        # (иначе периодически вылетает "database is locked" → 500).
+        "OPTIONS": {
+            "timeout": 20,
+            "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+        },
     }
 }
 

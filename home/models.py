@@ -5,8 +5,11 @@ from datetime import date
 from pathlib import Path
 
 from django.conf import settings
-from django.db import models
+from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
@@ -15,6 +18,14 @@ from wagtail.models import Orderable, Page
 from wagtail.rich_text import expand_db_html
 
 from home.blocks import ContactsSectionBlock
+from home.forms import (
+    CAPTCHA_ANSWER_KEY,
+    CAPTCHA_QUESTION_KEY,
+    TrainingBoardCreateForm,
+    TrainingBoardDeleteForm,
+    delete_token_for,
+    generate_captcha,
+)
 from home.regions import REGION_CHOICES, REGIONS
 
 # Синтетический столбец матрицы / карточка (не субъект РФ на карте).
@@ -1353,3 +1364,175 @@ class RegionalPhoto(Orderable):
     @property
     def original(self):
         return self.original_url or ""
+
+
+class TrainingBoardCard(models.Model):
+    """Объявление на «Доске заявок на тренировочные бои» (создают посетители сайта)."""
+
+    team_name = models.CharField("Название команды", max_length=200)
+    dates = models.CharField("Примерные даты", max_length=200)
+    city = models.CharField("Город (или онлайн)", max_length=200)
+    tasks = models.TextField("Пожелания по заданиям", blank=True)
+    comments = models.TextField("Комментарии", blank=True)
+    contact = models.TextField("Имя и контакты руководителя команды")
+    password_hash = models.CharField(
+        "Хэш пароля",
+        max_length=128,
+        editable=False,
+        help_text="Хранится только как хэш; сам пароль не показывается.",
+    )
+    created_at = models.DateTimeField("Создано", auto_now_add=True, db_index=True)
+
+    panels = [
+        FieldPanel("team_name"),
+        FieldPanel("dates"),
+        FieldPanel("city"),
+        FieldPanel("tasks"),
+        FieldPanel("comments"),
+        FieldPanel("contact"),
+        FieldPanel("created_at", read_only=True),
+    ]
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Объявление о тренировочном бое"
+        verbose_name_plural = "Объявления о тренировочных боях"
+
+    def __str__(self):
+        return f"{self.team_name} · {self.dates}"
+
+    def set_password(self, raw_password):
+        self.password_hash = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password_hash)
+
+
+class TrainingBoardPage(Page):
+    """Страница «Доска заявок на тренировочные бои»: форма создания и список объявлений."""
+
+    intro = RichTextField(
+        "Вступление",
+        blank=True,
+        features=["bold", "italic", "link"],
+    )
+
+    content_panels = Page.content_panels + [FieldPanel("intro")]
+    parent_page_types = ["home.HomePage"]
+    subpage_types = []
+    max_count = 1
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["cards"] = self.cards()
+        context["create_form"] = self._fresh_create_form(request)
+        context["board_error"] = None
+        return context
+
+    def cards(self):
+        """Публичные данные карточек + токен формы удаления для шаблона."""
+        items = []
+        for card in TrainingBoardCard.objects.order_by("-created_at"):
+            items.append(
+                {
+                    "id": card.pk,
+                    "team_name": card.team_name,
+                    "dates": card.dates,
+                    "city": card.city,
+                    "tasks": card.tasks,
+                    "comments": card.comments,
+                    "contact": card.contact,
+                    "created_at": card.created_at,
+                    "delete_token": delete_token_for(card.pk),
+                }
+            )
+        return items
+
+    def _fresh_create_form(self, request):
+        expected, question = generate_captcha()
+        request.session[CAPTCHA_ANSWER_KEY] = str(expected)
+        request.session[CAPTCHA_QUESTION_KEY] = question
+        return TrainingBoardCreateForm(
+            captcha_question=question,
+            captcha_expected=expected,
+        )
+
+    def _render_page(self, request, create_form=None, board_error=None):
+        context = super().get_context(request)
+        context["cards"] = self.cards()
+        context["create_form"] = create_form or self._fresh_create_form(request)
+        context["board_error"] = board_error
+        return TemplateResponse(request, self.get_template(request), context)
+
+    def serve(self, request, *args, **kwargs):
+        if request.method == "POST":
+            action = request.POST.get("action")
+            if action == "create":
+                return self._handle_create(request)
+            if action == "delete":
+                return self._handle_delete(request)
+        return super().serve(request, *args, **kwargs)
+
+    def _handle_create(self, request):
+        from editor.security import client_ip, throttle
+
+        ip = client_ip(request)
+        if throttle(f"training-board-create:{ip}", limit=5, window=3600):
+            return self._render_page(
+                request,
+                board_error="Слишком много объявлений с вашего адреса. Попробуйте позже.",
+            )
+
+        question = request.session.get(CAPTCHA_QUESTION_KEY, "")
+        expected = request.session.get(CAPTCHA_ANSWER_KEY)
+        if expected is None:
+            expected, question = generate_captcha()
+            request.session[CAPTCHA_ANSWER_KEY] = str(expected)
+            request.session[CAPTCHA_QUESTION_KEY] = question
+
+        form = TrainingBoardCreateForm(
+            request.POST,
+            captcha_question=question,
+            captcha_expected=expected,
+        )
+        if form.is_valid():
+            card = TrainingBoardCard(
+                team_name=form.cleaned_data["team_name"],
+                dates=form.cleaned_data["dates"],
+                city=form.cleaned_data["city"],
+                tasks=form.cleaned_data["tasks"],
+                comments=form.cleaned_data["comments"],
+                contact=form.cleaned_data["contact"],
+            )
+            card.set_password(form.cleaned_data["password"])
+            card.save()
+            request.session.pop(CAPTCHA_ANSWER_KEY, None)
+            request.session.pop(CAPTCHA_QUESTION_KEY, None)
+            return redirect(f"{self.get_url(request)}?created=1")
+        return self._render_page(request, create_form=form)
+
+    def _handle_delete(self, request):
+        from editor.security import client_ip, throttle
+
+        form = TrainingBoardDeleteForm(request.POST)
+        if not form.is_valid():
+            errors = form.non_field_errors()
+            error = errors[0] if errors else "Не удалось удалить объявление."
+            return self._render_page(request, board_error=str(error))
+
+        card = TrainingBoardCard.objects.filter(pk=form.card_id).first()
+        if card is None:
+            return self._render_page(request, board_error="Объявление уже удалено.")
+
+        ip = client_ip(request)
+        if throttle(f"training-board-delete:{ip}:{card.pk}", limit=20, window=3600):
+            return self._render_page(
+                request,
+                board_error="Слишком много попыток удаления. Подождите час.",
+            )
+
+        if not card.check_password(form.cleaned_data["password"]):
+            return self._render_page(request, board_error="Неверный пароль.")
+
+        card.delete()
+        return redirect(f"{self.get_url(request)}?deleted=1")
