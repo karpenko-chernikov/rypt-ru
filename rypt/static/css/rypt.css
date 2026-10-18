@@ -375,6 +375,116 @@ main {
     50% { background-position: 0% 50%; }
 }
 
+.home-info {
+    position: relative;
+    z-index: 1;
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 0 1.4rem 6rem;
+}
+
+.home-info__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(15rem, 0.75fr);
+    gap: 1.6rem 2rem;
+    align-items: start;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    padding: 1.5rem 1.6rem;
+}
+
+.home-info__title {
+    margin: 0 0 0.7rem;
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+.home-info__dates {
+    margin: 0 0 1rem;
+    color: var(--gold);
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.home-info__files-title {
+    margin: 0 0 0.4rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.home-info__file-list {
+    list-style: none;
+    margin: 0 0 1.2rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.home-info__file-list a {
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+.home-info__file-list a:hover,
+.home-info__file-list a:focus-visible {
+    border-bottom-color: var(--gold);
+}
+
+.home-info__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.home-info__cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7rem 1.1rem;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    transition: background 160ms ease, color 160ms ease;
+}
+
+.home-info__cta:hover,
+.home-info__cta:focus-visible {
+    background: var(--gold);
+    color: var(--bg);
+}
+
+.home-info__media {
+    margin: 0;
+}
+
+.home-info__media img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+}
+
+.home-info__media figcaption {
+    margin-top: 0.45rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+@media (max-width: 800px) {
+    .home-info__inner {
+        grid-template-columns: 1fr;
+    }
+}
+
 .page {
     padding: 6.5rem 1.4rem 5.5rem;
     max-width: 42rem;

@@ -67,6 +67,7 @@ def site_nav(request):
                 "title": "Главная",
                 "url": "/",
                 "kind": "home",
+                "info": home.info_payload(),
             }
         )
         for slug, title in NAV_SLUGS:

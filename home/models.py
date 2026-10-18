@@ -274,6 +274,32 @@ class HomePage(Page):
     reporter_text = models.TextField("Докладчик", blank=True)
     opponent_text = models.TextField("Оппонент", blank=True)
     reviewer_text = models.TextField("Рецензент", blank=True)
+    info_title = models.CharField(
+        "Заголовок блока",
+        max_length=240,
+        blank=True,
+        default="Информация о ближайшем Открытом Всероссийском Турнире юных физиков",
+    )
+    info_dates = models.CharField(
+        "Даты",
+        max_length=240,
+        blank=True,
+        help_text="Например: 15–21 марта 2027, Москва.",
+    )
+    info_photo = models.ForeignKey(
+        "wagtailimages.Image",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Фотография",
+        null=True,
+        blank=True,
+    )
+    info_photo_caption = models.CharField(
+        "Подпись к фотографии",
+        max_length=240,
+        blank=True,
+        help_text="Например: университет, где пройдёт турнир.",
+    )
 
     content_panels = Page.content_panels + [
         FieldPanel("lead"),
@@ -287,6 +313,17 @@ class HomePage(Page):
             ],
             heading="Три роли физбоя",
         ),
+        MultiFieldPanel(
+            [
+                FieldPanel("info_title"),
+                FieldPanel("info_dates"),
+                FieldPanel("info_photo"),
+                FieldPanel("info_photo_caption"),
+            ],
+            heading="Информация о ближайшем турнире",
+        ),
+        InlinePanel("info_files", label="Файлы"),
+        InlinePanel("info_buttons", label="Кнопки"),
     ]
 
     max_count = 1
@@ -309,6 +346,71 @@ class HomePage(Page):
             ContentPage.objects.child_of(self).live().public().order_by("path")
         )
         return context
+
+    def info_payload(self):
+        """Данные блока «Информация о ближайшем турнире» для главной страницы."""
+        files = []
+        for item in self.info_files.all():
+            url = item.url or (item.document.file.url if item.document else "")
+            if not url:
+                continue
+            files.append(
+                {
+                    "title": item.title or (item.document.title if item.document else ""),
+                    "url": url,
+                    "download": bool(item.document),
+                }
+            )
+        return {
+            "title": self.info_title
+            or "Информация о ближайшем Открытом Всероссийском Турнире юных физиков",
+            "dates": self.info_dates,
+            "photo_url": self.info_photo.file.url if self.info_photo else "",
+            "photo_caption": self.info_photo_caption,
+            "files": files,
+            "buttons": [
+                {"label": btn.label, "url": btn.url}
+                for btn in self.info_buttons.all()
+                if btn.label and btn.url
+            ],
+        }
+
+
+class HomeInfoFile(Orderable):
+    """Файл в блоке информации на главной (загруженный документ или ссылка)."""
+
+    page = ParentalKey(HomePage, on_delete=models.CASCADE, related_name="info_files")
+    title = models.CharField("Название", max_length=200, blank=True)
+    document = models.ForeignKey(
+        "wagtaildocs.Document",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Файл (документ)",
+        null=True,
+        blank=True,
+    )
+    url = models.CharField(
+        "Или ссылка",
+        max_length=500,
+        blank=True,
+        help_text="Внешняя ссылка (https://…) или путь к файлу (/media/…).",
+    )
+
+    panels = [
+        FieldPanel("title"),
+        FieldPanel("document"),
+        FieldPanel("url"),
+    ]
+
+
+class HomeInfoButton(Orderable):
+    """Кнопка-действие в блоке информации (предрегистрация, регистрация, МТИ и т.д.)."""
+
+    page = ParentalKey(HomePage, on_delete=models.CASCADE, related_name="info_buttons")
+    label = models.CharField("Текст кнопки", max_length=120)
+    url = models.CharField("Ссылка", max_length=500)
+
+    panels = [FieldPanel("label"), FieldPanel("url")]
 
 
 class NewsIndexPage(Page):

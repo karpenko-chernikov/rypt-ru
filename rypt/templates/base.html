@@ -76,6 +76,7 @@
                                             <h1 class="hero-title">Российский Турнир Юных Физиков</h1>
                                         </div>
                                     </section>
+                                    {% include "home/includes/home_tournament_info.html" with info=slide.info %}
                                 {% else %}
                                     <article class="page{% if slide.kind == 'documents' %} page-documents{% endif %}">
                                         <h1>{{ slide.title }}</h1>

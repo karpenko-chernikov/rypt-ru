@@ -1,0 +1,41 @@
+{% if info.title or info.dates or info.files or info.buttons or info.photo_url %}
+<section class="home-info" aria-labelledby="home-info-title">
+    <div class="home-info__inner">
+        <div class="home-info__content">
+            {% if info.title %}
+            <h2 class="home-info__title" id="home-info-title">{{ info.title }}</h2>
+            {% endif %}
+            {% if info.dates %}
+            <p class="home-info__dates">{{ info.dates }}</p>
+            {% endif %}
+            {% if info.files %}
+            <div class="home-info__files">
+                <p class="home-info__files-title">Файлы</p>
+                <ul class="home-info__file-list">
+                    {% for file in info.files %}
+                    <li>
+                        <a href="{{ file.url }}"{% if file.download %} download{% endif %} rel="noreferrer">{{ file.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if info.buttons %}
+            <div class="home-info__actions">
+                {% for button in info.buttons %}
+                <a class="home-info__cta" href="{{ button.url }}" rel="noreferrer">{{ button.label }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% if info.photo_url %}
+        <figure class="home-info__media">
+            <img src="{{ info.photo_url }}" alt="{{ info.photo_caption }}" loading="lazy">
+            {% if info.photo_caption %}
+            <figcaption>{{ info.photo_caption }}</figcaption>
+            {% endif %}
+        </figure>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
