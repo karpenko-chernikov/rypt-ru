@@ -473,6 +473,20 @@ class NewsPage(Page):
             ),
         ]
 
+    @property
+    def short_title(self, max_words=5, max_chars=50):
+        """Короткий заголовок для списков и детальной страницы."""
+        title = (self.title or "").strip()
+        if not title:
+            return title
+        words = title.split()
+        short = " ".join(words[:max_words])
+        if len(short) > max_chars:
+            short = short[:max_chars].rstrip()
+        if short != title:
+            short = short.rstrip(".,;:!?—–-") + "…"
+        return short
+
 
 class NewsAttachment(Orderable):
     KIND_PHOTO = "photo"

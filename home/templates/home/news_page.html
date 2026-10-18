@@ -6,7 +6,7 @@
 {% block content %}
 <article class="page">
     <p class="when"><time datetime="{{ page.date|date:'Y-m-d' }}">{{ page.date|date:"d E Y" }}</time></p>
-    <h1>{{ page.title }}</h1>
+    <h1>{{ page.short_title }}</h1>
     {% if page.attachments.all %}
         <div class="news-gallery">
             {% for item in page.attachments.all %}

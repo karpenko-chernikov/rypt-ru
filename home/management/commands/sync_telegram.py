@@ -76,6 +76,20 @@ def _plain(text_html):
     return _SPACE_RE.sub(" ", _TAG_RE.sub(" ", text_html or "")).strip()
 
 
+def _short_title(text_html, max_words=5, max_chars=50):
+    """Короткий заголовок: первые N слов, не длиннее max_chars, с троеточием."""
+    text = _plain(text_html)
+    if not text:
+        return ""
+    words = text.split()
+    short = " ".join(words[:max_words])
+    if len(short) > max_chars:
+        short = short[:max_chars].rstrip()
+    if short != text:
+        short = short.rstrip(".,;:!?—–-") + "…"
+    return short
+
+
 class Command(BaseCommand):
     help = "Подтягивает новые посты Telegram-канала через reader-сервис и создаёт NewsPage."
 
@@ -160,7 +174,7 @@ class Command(BaseCommand):
 
     def _create_post(self, news_index, channel, post, base, token):
         text_html = post.get("text_html") or ""
-        title = _plain(text_html)[:160] or f"Новость от {_to_date(post.get('date')).strftime('%d.%m.%Y')}"
+        title = _short_title(text_html) or f"Новость от {_to_date(post.get('date')).strftime('%d.%m.%Y')}"
 
         page = NewsPage(
             title=title,

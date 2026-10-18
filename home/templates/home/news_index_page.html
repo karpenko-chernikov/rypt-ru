@@ -13,7 +13,7 @@
         {% for item in news %}
         <li>
             <time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:"d.m.Y" }}</time>
-            <a href="{% pageurl item %}">{{ item.title }}</a>
+            <a href="{% pageurl item %}">{{ item.short_title }}</a>
         </li>
         {% endfor %}
     </ol>
