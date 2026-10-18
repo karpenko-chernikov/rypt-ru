@@ -110,6 +110,11 @@ systemctl restart rypt
 
 Переменные окружения — см. `.env.example`. Секреты (`DJANGO_SECRET_KEY`, пароли) **никогда** не коммитить.
 
+Чтобы открыть Wagtail-админку `/redaktura/` на staging (вне `DEBUG`), добавьте
+в `/etc/rypt.env` строку `ENABLE_WAGTAIL_ADMIN=1` и перезапустите сервис:
+`systemctl restart rypt`. Django-админка `/django-admin/` остаётся недоступной.
+На боевом сайте этот флаг не ставится.
+
 ## Полезные материалы
 
 Раздел `materials` — дерево страниц Wagtail: `MaterialsIndexPage` (индекс) → `MaterialGroupPage` (группа-заголовок) → `MaterialPage` (материал). Карточки на индексе ведут на страницы материалов. Правится локально через админку Wagtail `/redaktura/` (доступна только при `DEBUG=True`); на живом сайте этого раздела в кабинете нет.

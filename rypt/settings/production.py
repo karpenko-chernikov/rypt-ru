@@ -25,6 +25,10 @@ WAGTAILADMIN_BASE_URL = os.environ.get(
     "https://rypt.folomin.com",
 )
 
+# Разрешить Wagtail-админку /redaktura/ вне DEBUG (например, на staging).
+# По умолчанию выключено — на боевом сайте админка недоступна.
+ENABLE_WAGTAIL_ADMIN = os.environ.get("ENABLE_WAGTAIL_ADMIN") == "1"
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 SESSION_COOKIE_SECURE = True

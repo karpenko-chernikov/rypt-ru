@@ -13,13 +13,20 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
 ]
 
-# Wagtail/django-admin — только локально (DEBUG), на сайте их нет.
+# Wagtail/django-admin — локально (DEBUG) или когда явно включено (staging).
+# На боевом сайте их нет: ENABLE_WAGTAIL_ADMIN там не ставится.
 if settings.DEBUG:
     from django.contrib import admin
     from wagtail.admin import urls as wagtailadmin_urls
 
     urlpatterns = [
         path("django-admin/", admin.site.urls),
+        path("redaktura/", include(wagtailadmin_urls)),
+    ] + urlpatterns
+elif getattr(settings, "ENABLE_WAGTAIL_ADMIN", False):
+    from wagtail.admin import urls as wagtailadmin_urls
+
+    urlpatterns = [
         path("redaktura/", include(wagtailadmin_urls)),
     ] + urlpatterns
 
