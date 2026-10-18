@@ -317,12 +317,11 @@ main {
 
 .hero {
     position: relative;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 5rem 1.4rem 8rem;
+    justify-content: flex-start;
+    padding: 5.5rem 1.4rem 1.5rem;
 }
 
 .hero-stage {
@@ -378,8 +377,8 @@ main {
 .home-info {
     position: relative;
     z-index: 1;
-    max-width: 52rem;
-    margin: 0 auto;
+    max-width: 74rem;
+    margin: 2.2rem auto 0;
     padding: 0 1.4rem 6rem;
 }
 
@@ -408,6 +407,16 @@ main {
     color: var(--gold);
     font-size: 1.05rem;
     font-weight: 600;
+}
+
+.home-info__text {
+    max-width: none;
+}
+
+.home-info__text img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
 }
 
 .home-info__files-title {

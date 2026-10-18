@@ -286,6 +286,11 @@ class HomePage(Page):
         blank=True,
         help_text="Например: 15–21 марта 2027, Москва.",
     )
+    info_text = RichTextField(
+        "Информация",
+        blank=True,
+        features=["bold", "italic", "link", "image", "ol", "ul"],
+    )
     info_photo = models.ForeignKey(
         "wagtailimages.Image",
         on_delete=models.SET_NULL,
@@ -317,6 +322,7 @@ class HomePage(Page):
             [
                 FieldPanel("info_title"),
                 FieldPanel("info_dates"),
+                FieldPanel("info_text"),
                 FieldPanel("info_photo"),
                 FieldPanel("info_photo_caption"),
             ],
@@ -365,6 +371,7 @@ class HomePage(Page):
             "title": self.info_title
             or "Информация о ближайшем Открытом Всероссийском Турнире юных физиков",
             "dates": self.info_dates,
+            "text": self.info_text,
             "photo_url": self.info_photo.file.url if self.info_photo else "",
             "photo_caption": self.info_photo_caption,
             "files": files,
