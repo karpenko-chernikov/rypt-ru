@@ -259,3 +259,60 @@
 .editor-invite-created {
     border-color: rgba(120, 200, 120, 0.45);
 }
+
+.editor-field {
+    margin: 0 0 1rem;
+}
+
+.editor-field-checks > label {
+    margin-bottom: 0.45rem;
+}
+
+.editor-field-checks ul {
+    list-style: none;
+    margin: 0.35rem 0 0;
+    padding: 0.55rem 0.7rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 0.25rem 0.85rem;
+    max-height: 22rem;
+    overflow: auto;
+    border: 1px solid var(--line);
+    background: var(--bar);
+}
+
+.editor-field-checks li {
+    margin: 0;
+    min-width: 0;
+}
+
+.editor-field-checks li label {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.28rem 0.2rem;
+    color: var(--fg, #fff);
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.35;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.editor-field-checks li label:hover {
+    background: rgb(255 255 255 / 0.05);
+}
+
+.editor-field-checks input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    max-width: none;
+    margin: 0.15rem 0 0;
+    padding: 0;
+    flex: 0 0 auto;
+    accent-color: var(--gold, #d9b24a);
+    cursor: pointer;
+}

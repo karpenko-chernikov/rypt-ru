@@ -43,8 +43,8 @@ from editor.services import (
 )
 from home.models import (
     RegionalPhoto,
-    RegionalProblem,
     RegionalTournament,
+    RegionalTournamentProblem,
     RussiaTournamentsPage,
     TournamentLink,
     TournamentPage,
@@ -52,6 +52,8 @@ from home.models import (
     TournamentProblem,
     TournamentProblemScan,
     TournamentResultRow,
+    academic_season_label,
+    current_tournament_season,
 )
 from home.regions import REGION_CHOICES, REGIONS
 
@@ -999,23 +1001,44 @@ def _publish_russia(page: RussiaTournamentsPage, user, summary: str):
     )
 
 
-def _problems_text(reg: RegionalTournament) -> str:
-    lines = []
-    for p in reg.problems.all().order_by("number", "sort_order"):
-        lines.append(f"{p.number} | {p.title} | {p.statement}")
-    return "\n".join(lines)
+def _current_season_problem_choices():
+    current = current_tournament_season()
+    if not current:
+        return [], None
+    choices = [
+        (str(p.pk), f"{p.number}. {p.title}")
+        for p in current.problems.all().order_by("number")
+    ]
+    return choices, current
 
 
-def _save_problems(reg: RegionalTournament, rows: list[dict]):
-    reg.problems.all().delete()
-    for i, row in enumerate(rows):
-        RegionalProblem.objects.create(
+def _selected_season_problem_ids(reg: RegionalTournament, current: TournamentPage | None) -> list[str]:
+    if not reg or not current:
+        return []
+    return [
+        str(pid)
+        for pid in RegionalTournamentProblem.objects.filter(
             tournament=reg,
-            sort_order=i,
-            number=row["number"],
-            title=row["title"],
-            statement=row["statement"],
-        )
+            problem__page=current,
+        ).values_list("problem_id", flat=True)
+    ]
+
+
+def _save_season_problems(reg: RegionalTournament, problem_ids: list[int], current: TournamentPage | None):
+    if not current:
+        return
+    RegionalTournamentProblem.objects.filter(
+        tournament=reg,
+        problem__page=current,
+    ).delete()
+    problems = {
+        p.pk: p
+        for p in TournamentProblem.objects.filter(page=current, pk__in=problem_ids)
+    }
+    for pid in problem_ids:
+        problem = problems.get(pid)
+        if problem:
+            RegionalTournamentProblem.objects.create(tournament=reg, problem=problem)
 
 
 def _photos_text(reg: RegionalTournament) -> str:
@@ -1050,11 +1073,12 @@ def russia_list(request):
 def russia_edit(request, pk=None):
     page = _russia_page()
     reg = get_object_or_404(RegionalTournament, pk=pk, page=page) if pk else None
-    used = set(page.regions.exclude(pk=reg.pk if reg else None).values_list("region_code", flat=True))
-    choices = [(c, n) for c, n in REGION_CHOICES if c not in used or (reg and c == reg.region_code)]
+    choices = list(REGION_CHOICES)
+    season_choices, current_season = _current_season_problem_choices()
     initial = None
     if reg:
         initial = {
+            "slug": reg.slug,
             "region_code": reg.region_code,
             "has_tournament": reg.has_tournament,
             "title": reg.title,
@@ -1067,45 +1091,53 @@ def russia_edit(request, pk=None):
             "results_text": reg.results_text,
             "results_url": reg.results_url,
             "results_label": reg.results_label,
-            "problems_text": _problems_text(reg),
+            "season_problem_ids": _selected_season_problem_ids(reg, current_season),
             "photos_text": _photos_text(reg),
         }
     form = RegionalTournamentForm(
         request.POST or None,
         region_choices=choices,
+        season_problem_choices=season_choices,
         initial=initial,
     )
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data
-        problems = data.pop("problems_text")
+        problem_ids = data.pop("season_problem_ids")
         photos = data.pop("photos_text")
-        if reg is None:
-            reg = RegionalTournament(page=page, sort_order=page.regions.count())
-        for key, value in data.items():
-            setattr(reg, key, value if key != "has_tournament" else bool(value))
-        if not data.get("results_label"):
-            reg.results_label = "Оригинал результатов"
-        reg.save()
-        _save_problems(reg, problems)
-        _save_photos(reg, photos)
-        _publish_russia(page, request.user, f"Регион: {REGIONS.get(reg.region_code, reg.region_code)}")
-        log_change(
-            user=request.user,
-            action=EditorChangeLog.ACTION_UPDATE if pk else EditorChangeLog.ACTION_CREATE,
-            summary=f"{'Правка' if pk else 'Добавлен'} регион {reg.region_name}",
-            object_type="russia_region",
-            object_id=reg.pk,
-            object_label=reg.region_name,
-        )
-        messages.success(request, "Регион сохранён.")
-        return redirect("editor:russia_list")
+        slug = data["slug"]
+        clash = page.regions.filter(slug=slug).exclude(pk=reg.pk if reg else None).exists()
+        if clash:
+            form.add_error("slug", "Такой код турнира уже есть.")
+        else:
+            if reg is None:
+                reg = RegionalTournament(page=page, sort_order=page.regions.count())
+            for key, value in data.items():
+                setattr(reg, key, value if key != "has_tournament" else bool(value))
+            if not data.get("results_label"):
+                reg.results_label = "Оригинал результатов"
+            reg.save()
+            _save_season_problems(reg, problem_ids, current_season)
+            _save_photos(reg, photos)
+            _publish_russia(page, request.user, f"Турнир: {reg.title}")
+            log_change(
+                user=request.user,
+                action=EditorChangeLog.ACTION_UPDATE if pk else EditorChangeLog.ACTION_CREATE,
+                summary=f"{'Правка' if pk else 'Добавлен'} турнир {reg.title}",
+                object_type="russia_region",
+                object_id=reg.pk,
+                object_label=reg.title,
+            )
+            messages.success(request, "Турнир сохранён.")
+            return redirect("editor:russia_list")
     return render(
         request,
         "editor/russia_form.html",
         {
             "form": form,
             "reg": reg,
-            "title": "Правка региона" if reg else "Новый региональный турнир",
+            "title": "Правка турнира" if reg else "Новый региональный турнир",
+            "current_season": current_season,
+            "season_label": academic_season_label(current_season.year) if current_season else "",
         },
     )
 

@@ -128,6 +128,16 @@
 
         function go(nextPos, animate) {
             if (moving && animate) return;
+            // Документы с PDF нельзя держать внутри transform колоды —
+            // уходим на обычную страницу.
+            var probe = nextPos;
+            if (probe === 0) probe = n;
+            else if (probe === n + 1) probe = 1;
+            var probeSlide = originals[probe - 1];
+            if (probeSlide && probeSlide.dataset.kind === "documents" && probeSlide.dataset.url) {
+                window.location.assign(probeSlide.dataset.url);
+                return;
+            }
             pos = nextPos;
             var canAnimate = animate && !reduce;
             if (canAnimate) moving = true;
@@ -233,65 +243,81 @@
     }
 
     function startSeasonTabs() {
-        var root = document.querySelector("[data-season-tabs]");
-        if (!root) return;
-        var tabs = Array.prototype.slice.call(root.querySelectorAll("[role=tab]"));
-        var panels = Array.prototype.slice.call(root.querySelectorAll("[role=tabpanel]"));
-        if (!tabs.length) return;
+        // Только «живые» корни, не клоны колоды (aria-hidden).
+        var roots = Array.prototype.slice.call(document.querySelectorAll("[data-season-tabs]")).filter(function (root) {
+            return !root.closest('[aria-hidden="true"]');
+        });
+        if (!roots.length) return;
 
-        function show(name, updateHash) {
-            var found = false;
-            tabs.forEach(function (tab) {
-                var on = tab.getAttribute("data-tab") === name;
-                tab.setAttribute("aria-selected", on ? "true" : "false");
-                tab.tabIndex = on ? 0 : -1;
-                if (on) found = true;
-            });
-            if (!found) {
-                name = tabs[0].getAttribute("data-tab");
-                tabs[0].setAttribute("aria-selected", "true");
-                tabs[0].tabIndex = 0;
+        roots.forEach(function (root) {
+            var tabs = Array.prototype.slice.call(root.querySelectorAll(":scope > .season-tabs [role=tab], :scope .season-tabs [role=tab]"));
+            var panels = Array.prototype.slice.call(root.querySelectorAll(":scope > [role=tabpanel], :scope > .documents-panel, :scope [role=tabpanel]"));
+            if (!panels.length) {
+                panels = Array.prototype.slice.call(root.querySelectorAll(".season-panel"));
             }
-            panels.forEach(function (panel) {
-                var on = panel.id === "panel-" + name;
-                if (on) panel.removeAttribute("hidden");
-                else panel.setAttribute("hidden", "");
-            });
-            if (updateHash) {
-                var next = "#" + name;
-                if (window.location.hash !== next) {
-                    history.replaceState(null, "", next);
+            if (!tabs.length) return;
+            var isDocuments = root.hasAttribute("data-documents-tabs");
+
+            function show(name, updateHash) {
+                var found = false;
+                tabs.forEach(function (tab) {
+                    var on = tab.getAttribute("data-tab") === name;
+                    tab.setAttribute("aria-selected", on ? "true" : "false");
+                    tab.tabIndex = on ? 0 : -1;
+                    if (on) found = true;
+                });
+                if (!found) {
+                    name = tabs[0].getAttribute("data-tab");
+                    tabs[0].setAttribute("aria-selected", "true");
+                    tabs[0].tabIndex = 0;
+                }
+                panels.forEach(function (panel) {
+                    var on = panel.id === "panel-" + name;
+                    if (on) panel.removeAttribute("hidden");
+                    else panel.setAttribute("hidden", "");
+                });
+                if (updateHash) {
+                    var next = "#" + name;
+                    if (window.location.hash !== next) {
+                        history.replaceState(null, "", next);
+                    }
+                }
+                if (isDocuments && window.ryptDocumentsViewer) {
+                    requestAnimationFrame(function () {
+                        window.ryptDocumentsViewer.mountVisible(root);
+                    });
                 }
             }
-        }
 
-        var initial = (window.location.hash || "").replace("#", "");
-        show(initial || tabs[0].getAttribute("data-tab"), false);
+            var initial = (window.location.hash || "").replace("#", "");
+            show(initial || tabs[0].getAttribute("data-tab"), false);
 
-        root.addEventListener("click", function (event) {
-            var tab = event.target.closest("[role=tab]");
-            if (!tab || !root.contains(tab)) return;
-            show(tab.getAttribute("data-tab"), true);
-        });
+            root.addEventListener("click", function (event) {
+                var tab = event.target.closest("[role=tab]");
+                if (!tab || !root.contains(tab)) return;
+                event.preventDefault();
+                show(tab.getAttribute("data-tab"), true);
+            });
 
-        root.addEventListener("keydown", function (event) {
-            var tab = event.target.closest("[role=tab]");
-            if (!tab || !root.contains(tab)) return;
-            var i = tabs.indexOf(tab);
-            if (i < 0) return;
-            var next = i;
-            if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (i + 1) % tabs.length;
-            else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (i - 1 + tabs.length) % tabs.length;
-            else if (event.key === "Home") next = 0;
-            else if (event.key === "End") next = tabs.length - 1;
-            else return;
-            event.preventDefault();
-            tabs[next].focus();
-            show(tabs[next].getAttribute("data-tab"), true);
-        });
+            root.addEventListener("keydown", function (event) {
+                var tab = event.target.closest("[role=tab]");
+                if (!tab || !root.contains(tab)) return;
+                var i = tabs.indexOf(tab);
+                if (i < 0) return;
+                var next = i;
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (i + 1) % tabs.length;
+                else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (i - 1 + tabs.length) % tabs.length;
+                else if (event.key === "Home") next = 0;
+                else if (event.key === "End") next = tabs.length - 1;
+                else return;
+                event.preventDefault();
+                tabs[next].focus();
+                show(tabs[next].getAttribute("data-tab"), true);
+            });
 
-        window.addEventListener("hashchange", function () {
-            show((window.location.hash || "").replace("#", ""), false);
+            window.addEventListener("hashchange", function () {
+                show((window.location.hash || "").replace("#", ""), false);
+            });
         });
     }
 
@@ -359,9 +385,28 @@
         show(0);
     }
 
+    function syncShortScroll() {
+        var slides = document.querySelectorAll(".slide");
+        if (slides.length) {
+            slides.forEach(function (slide) {
+                // iframe/PDF внутри слайда: не трогаем overflow — иначе ломаются клики.
+                if (slide.querySelector("iframe, object, embed, .documents")) {
+                    slide.classList.remove("is-short");
+                    return;
+                }
+                var overflows = slide.scrollHeight > slide.clientHeight + 2;
+                slide.classList.toggle("is-short", !overflows);
+                if (!overflows) slide.scrollTop = 0;
+            });
+        }
+    }
+
     startDeck();
     startSeasonTabs();
     startPhotoStudio();
+    syncShortScroll();
+    window.addEventListener("resize", syncShortScroll);
+    window.addEventListener("load", syncShortScroll);
 
     function parseJsonScript(root, selector) {
         var node = root.querySelector(selector);
@@ -505,13 +550,15 @@
                 } catch (e) {}
                 // pointer capture ломает click на SVG path — фиксируем/снимаем здесь
                 if (!moved && pendingCode) {
-                    if (lockedCode === pendingCode) {
+                    var tourKey = tournamentKeyForMapRegion(pendingCode);
+                    var pathEl = svg.getElementById(pendingCode);
+                    if (lockedCode === tourKey) {
                         // Повторный клик — снять фикс, снова работает наведение
                         lockedCode = null;
-                        selectRegion(pendingCode, svg.getElementById(pendingCode));
+                        selectRegion(tourKey, pathEl);
                     } else {
-                        lockedCode = pendingCode;
-                        selectRegion(pendingCode, svg.getElementById(pendingCode));
+                        lockedCode = tourKey;
+                        selectRegion(tourKey, pathEl);
                     }
                 }
                 pendingCode = null;
@@ -539,9 +586,26 @@
             applyZoom();
         }
 
-        Object.keys(data).forEach(function (code) {
-            if (!data[code] || !data[code].has_tournament) return;
-            var path = svg.getElementById(code);
+        function mapCodeOf(card, fallback) {
+            if (!card) return fallback;
+            var rc = card.region_code || fallback;
+            if (!rc || rc === "ONLINE" || rc === "OPEN") return null;
+            return rc;
+        }
+
+        function tournamentKeyForMapRegion(regionCode) {
+            var keys = Object.keys(data).filter(function (key) {
+                var card = data[key];
+                return card && card.has_tournament && mapCodeOf(card, key) === regionCode;
+            });
+            return keys.length ? keys[0] : regionCode;
+        }
+
+        Object.keys(data).forEach(function (key) {
+            if (!data[key] || !data[key].has_tournament) return;
+            var mapCode = mapCodeOf(data[key], key);
+            if (!mapCode) return;
+            var path = svg.getElementById(mapCode);
             if (path) path.classList.add("has-tournament");
         });
 
@@ -555,15 +619,16 @@
         }
 
         function selectRegion(code, path) {
+            var card = data[code];
+            var mapCode = mapCodeOf(card, code);
             if (activePath) activePath.classList.remove("is-active");
-            activePath = path || svg.getElementById(code);
+            activePath = path || (mapCode ? svg.getElementById(mapCode) : null);
             if (activePath) activePath.classList.add("is-active");
 
             empty.classList.add("is-hidden");
             body.classList.remove("is-hidden");
 
-            var card = data[code];
-            var regionName = (card && card.region) || names[code] || code;
+            var regionName = (card && card.region) || names[mapCode || code] || names[code] || code;
             field("region").textContent = regionName;
 
             if (!card) {
@@ -593,22 +658,37 @@
             if (hasInfo) field("info").innerHTML = card.info_html;
 
             var problems = card.problems || [];
-            showBlock("problems", problems.length > 0);
+            var problemsPending = !!card.problems_pending;
+            showBlock("problems", problemsPending || problems.length > 0);
             var ol = field("problems");
+            var pendingEl = field("problems_pending");
             ol.innerHTML = "";
-            problems.forEach(function (p) {
-                var li = document.createElement("li");
-                var strong = document.createElement("strong");
-                strong.textContent = p.title || "";
-                li.appendChild(strong);
-                if (p.statement) {
-                    var st = document.createElement("span");
-                    st.className = "st";
-                    st.textContent = p.statement;
-                    li.appendChild(st);
+            if (problemsPending) {
+                if (pendingEl) {
+                    pendingEl.textContent = card.problems_pending_text || "Задачи сезона ещё не выбраны.";
+                    pendingEl.classList.remove("is-hidden");
                 }
-                ol.appendChild(li);
-            });
+                ol.classList.add("is-hidden");
+            } else {
+                if (pendingEl) {
+                    pendingEl.textContent = "";
+                    pendingEl.classList.add("is-hidden");
+                }
+                ol.classList.remove("is-hidden");
+                problems.forEach(function (p) {
+                    var li = document.createElement("li");
+                    var strong = document.createElement("strong");
+                    strong.textContent = (p.number ? p.number + ". " : "") + (p.title || "");
+                    li.appendChild(strong);
+                    if (p.statement) {
+                        var st = document.createElement("span");
+                        st.className = "st";
+                        st.textContent = p.statement;
+                        li.appendChild(st);
+                    }
+                    ol.appendChild(li);
+                });
+            }
 
             var hasResultsText = !!(card.results_text && String(card.results_text).trim());
             var hasResultsUrl = !!(card.results_url && String(card.results_url).trim());
@@ -647,20 +727,36 @@
         }
 
         svg.querySelectorAll(".russia-region").forEach(function (path) {
-            var code = path.id;
-            if (!code) return;
+            var regionCode = path.id;
+            if (!regionCode) return;
             path.setAttribute("role", "button");
-            path.setAttribute("aria-label", names[code] || code);
+            path.setAttribute("aria-label", names[regionCode] || regionCode);
 
             // Наведение подсвечивает; панель меняет, только если нет фикса.
             path.addEventListener("mouseenter", function () {
                 path.classList.add("is-hover");
                 if (!lockedCode) {
-                    selectRegion(code, path);
+                    selectRegion(tournamentKeyForMapRegion(regionCode), path);
                 }
             });
             path.addEventListener("mouseleave", function () {
                 path.classList.remove("is-hover");
+            });
+        });
+
+        // Матрица задач: клик по столбцу = карточка турнира (+ подсветка региона на карте).
+        root.querySelectorAll("[data-matrix-region]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var code = btn.getAttribute("data-matrix-region");
+                if (!code) return;
+                lockedCode = code;
+                var card = data[code];
+                var mapCode = mapCodeOf(card, code);
+                selectRegion(code, mapCode ? svg.getElementById(mapCode) : null);
+                var panel = root.querySelector("[data-russia-panel]");
+                if (panel && typeof panel.scrollIntoView === "function") {
+                    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }
             });
         });
     }

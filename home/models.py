@@ -1,6 +1,7 @@
 import html as html_lib
 import json
 import re
+from datetime import date
 from pathlib import Path
 
 from django.conf import settings
@@ -14,6 +15,26 @@ from wagtail.models import Orderable, Page
 from wagtail.rich_text import expand_db_html
 
 from home.regions import REGION_CHOICES, REGIONS
+
+# Синтетический столбец матрицы / карточка (не субъект РФ на карте).
+OPEN_ALL_RUSSIA_CODE = "OPEN"
+OPEN_ALL_RUSSIA_TITLE = "Открытый всероссийский турнир"
+
+_MONTH_SORT = (
+    ("январ", 1),
+    ("феврал", 2),
+    ("март", 3),
+    ("весн", 3),  # «весной», «весна»
+    ("апрел", 4),
+    ("ма[йя]", 5),
+    ("июн", 6),
+    ("июл", 7),
+    ("август", 8),
+    ("сентябр", 9),
+    ("октябр", 10),
+    ("ноябр", 11),
+    ("декабр", 12),
+)
 
 
 def ranking_score(row):
@@ -56,6 +77,180 @@ def season_title(year, roman=None):
     if roman:
         return f"{roman} · {year}"
     return str(year)
+
+
+def academic_season_label(year):
+    """Подпись сезона вида 2026/2027 (year — второй календарный год сезона)."""
+    try:
+        y = int(year)
+    except (TypeError, ValueError):
+        return str(year or "")
+    return f"{y - 1}/{y}"
+
+
+def current_tournament_season():
+    return TournamentPage.objects.filter(is_current=True).first()
+
+
+def _season_spring_year(current) -> int:
+    try:
+        return int(current.year)
+    except (TypeError, ValueError, AttributeError):
+        return date.today().year
+
+
+def _month_day_from_note(note: str) -> tuple[int, int] | None:
+    """Грубая дата из свободной формулировки («конец февраля», «март 2027»)."""
+    text = (note or "").lower().replace("ё", "е")
+    if not text.strip():
+        return None
+    month = None
+    for pattern, num in _MONTH_SORT:
+        if re.search(pattern, text):
+            month = num
+            break
+    if not month:
+        return None
+    if "конец" in text:
+        day = 25
+    elif "начал" in text or "серед" in text:
+        day = 10 if "начал" in text else 15
+    else:
+        day = 15
+    # «февраль–март» / «февраль-март» — ориентир на более поздний месяц диапазона
+    months_found = [n for p, n in _MONTH_SORT if re.search(p, text)]
+    if len(months_found) >= 2:
+        month = months_found[-1]
+        day = 1
+    return month, day
+
+
+def open_all_russia_payload(current=None):
+    """Карточка открытого всероссийского турнира для панели и матрицы."""
+    current = current or current_tournament_season()
+    season_label = academic_season_label(current.year) if current else ""
+    problems = []
+    if current:
+        problems = [
+            {"number": p.number, "title": p.title, "statement": p.statement}
+            for p in current.problems.all().order_by("number")
+        ]
+    return {
+        "code": OPEN_ALL_RUSSIA_CODE,
+        "region_code": OPEN_ALL_RUSSIA_CODE,
+        "region": OPEN_ALL_RUSSIA_TITLE,
+        "has_tournament": True,
+        "title": OPEN_ALL_RUSSIA_TITLE,
+        "city": "Москва",
+        "when": "15–21 марта",
+        "contacts": "",
+        "info_html": (
+            "<p>Открытый всероссийский турнир юных физиков — финал сезона. "
+            "Играются все задачи списка.</p>"
+        ),
+        "problems": problems,
+        "problems_pending": bool(current) and len(problems) == 0,
+        "problems_pending_text": (
+            f"Задачи на сезон «{season_label}» ещё не опубликованы."
+            if current
+            else "Текущий сезон не задан."
+        ),
+        "season_label": season_label,
+        "results_text": "",
+        "results_url": "",
+        "results_label": "",
+        "photos": [],
+        "is_national": True,
+    }
+
+
+def matrix_tournament_label(title: str, fallback: str = "") -> str:
+    """Короткое имя для столбца: «Сибирский турнир юных физиков» → «Сибирский»."""
+    text = (title or "").strip()
+    for suffix in (
+        " турнир юных физиков",
+        " Турнир юных физиков",
+        " турнир юных физиков.",
+    ):
+        if len(text) > len(suffix) and text.casefold().endswith(suffix.casefold()):
+            short = text[: -len(suffix)].strip(" —–-")
+            if short:
+                return short[:40]
+    return (text or fallback)[:40]
+
+
+def matrix_column_when(city: str, when: str) -> str:
+    parts = [p for p in (city.strip() if city else "", when.strip() if when else "") if p]
+    return " · ".join(parts)
+
+
+def build_russia_problems_matrix(russia_page):
+    """Матрица задач текущего сезона × турниры (регионы по датам, всероссийский — последний)."""
+    current = current_tournament_season()
+    if not current:
+        return None
+    problems = list(current.problems.all().order_by("number"))
+    if not problems:
+        return None
+    tours = list(
+        russia_page.regions.filter(has_tournament=True)
+        .prefetch_related(
+            models.Prefetch(
+                "season_problem_links",
+                queryset=RegionalTournamentProblem.objects.filter(
+                    problem__page=current
+                ).select_related("problem"),
+            )
+        )
+    )
+    tours.sort(key=lambda t: (t.matrix_sort_date(_season_spring_year(current)), t.region_code))
+    linked = {
+        t.pk: {link.problem_id for link in t.season_problem_links.all()}
+        for t in tours
+    }
+    # В матрице только турниры, у которых уже выбраны задачи сезона.
+    tours = [t for t in tours if linked.get(t.pk)]
+
+    columns = [
+        {
+            "code": t.payload_code,
+            "label": matrix_tournament_label(t.title, t.city or t.region_name),
+            "title": t.title,
+            "region": t.region_name,
+            "region_code": t.region_code,
+            "when": matrix_column_when(t.city, t.when_label()),
+            "is_national": False,
+        }
+        for t in tours
+    ]
+
+    # Открытый всероссийский — все задачи сезона, всегда последний столбец.
+    national = open_all_russia_payload(current)
+    columns.append(
+        {
+            "code": OPEN_ALL_RUSSIA_CODE,
+            "label": OPEN_ALL_RUSSIA_TITLE,
+            "title": OPEN_ALL_RUSSIA_TITLE,
+            "region": OPEN_ALL_RUSSIA_TITLE,
+            "when": f"{national['city']} · {national['when']}",
+            "is_national": True,
+        }
+    )
+
+    rows = [
+        {
+            "number": p.number,
+            "title": p.title,
+            "cells": [p.id in linked[t.pk] for t in tours] + [True],
+        }
+        for p in problems
+    ]
+    return {
+        "season_label": academic_season_label(current.year),
+        "season_title": current.display_title,
+        "columns": columns,
+        "rows": rows,
+    }
 
 
 class HomePage(Page):
@@ -240,6 +435,8 @@ class ContentPage(Page):
     def get_template(self, request, *args, **kwargs):
         if self.slug == "partners":
             return "home/partners_page.html"
+        if self.slug == "rules":
+            return "home/documents_page.html"
         return super().get_template(request, *args, **kwargs)
 
     def get_context(self, request, *args, **kwargs):
@@ -248,6 +445,13 @@ class ContentPage(Page):
             from home.partners import PARTNERS
 
             context["partners"] = PARTNERS
+        if self.slug == "rules":
+            from home.documents import CHARTER_DOCX, CHARTER_HTML, REGULATION_PDF, VOK
+
+            context["regulation_pdf"] = REGULATION_PDF
+            context["charter_docx"] = CHARTER_DOCX
+            context["charter_html"] = CHARTER_HTML
+            context["vok"] = VOK
         return context
 
 
@@ -681,10 +885,11 @@ class RussiaTournamentsPage(Page):
     max_count = 1
 
     def regions_payload(self):
-        """Данные для JS: код региона → карточка турнира."""
+        """Данные для JS: slug турнира → карточка (+ открытый всероссийский)."""
         out = {}
         for reg in self.regions.all():
-            out[reg.region_code] = reg.as_payload()
+            out[reg.payload_code] = reg.as_payload()
+        out[OPEN_ALL_RUSSIA_CODE] = open_all_russia_payload()
         return out
 
     def get_context(self, request):
@@ -692,9 +897,14 @@ class RussiaTournamentsPage(Page):
         context["russia_svg"] = load_russia_svg()
         context["regions_json"] = json.dumps(self.regions_payload(), ensure_ascii=False)
         context["region_names_json"] = json.dumps(REGIONS, ensure_ascii=False)
-        context["active_region_codes"] = [
-            r.region_code for r in self.regions.all() if r.has_tournament
-        ]
+        context["active_region_codes"] = list(
+            {
+                r.region_code
+                for r in self.regions.all()
+                if r.has_tournament and r.region_code and r.region_code != "ONLINE"
+            }
+        )
+        context["problems_matrix"] = build_russia_problems_matrix(self)
         return context
 
 
@@ -704,8 +914,13 @@ class RegionalTournament(ClusterableModel, Orderable):
         on_delete=models.CASCADE,
         related_name="regions",
     )
+    slug = models.SlugField(
+        "Код турнира",
+        max_length=64,
+        help_text="Уникальный ключ для матрицы и карточки, напр. sib, mos-mipt, beaver.",
+    )
     region_code = models.CharField(
-        "Субъект РФ",
+        "Субъект РФ / онлайн",
         max_length=16,
         choices=REGION_CHOICES,
         db_index=True,
@@ -750,6 +965,7 @@ class RegionalTournament(ClusterableModel, Orderable):
     panels = [
         MultiFieldPanel(
             [
+                FieldPanel("slug"),
                 FieldPanel("region_code"),
                 FieldPanel("has_tournament"),
                 FieldPanel("title"),
@@ -777,10 +993,14 @@ class RegionalTournament(ClusterableModel, Orderable):
     class Meta(Orderable.Meta):
         verbose_name = "Региональный турнир"
         verbose_name_plural = "Региональные турниры"
-        unique_together = [("page", "region_code")]
+        unique_together = [("page", "slug")]
 
     def __str__(self):
         return f"{self.region_name}: {self.title}"
+
+    @property
+    def payload_code(self):
+        return self.slug or self.region_code
 
     @property
     def region_name(self):
@@ -797,9 +1017,59 @@ class RegionalTournament(ClusterableModel, Orderable):
             return self.date_start.strftime("%d.%m.%Y")
         return ""
 
+    def matrix_sort_date(self, spring_year: int) -> date:
+        """Дата для порядка столбцов матрицы (раньше → левее)."""
+        if self.date_start:
+            return self.date_start
+        parsed = _month_day_from_note(self.date_note)
+        if parsed:
+            month, day = parsed
+            # Сезон: сент–дек относятся к первому календарному году.
+            year = spring_year - 1 if month >= 9 else spring_year
+            try:
+                return date(year, month, day)
+            except ValueError:
+                return date(year, month, 28)
+        # Без даты — в конце региональных (перед всероссийским).
+        return date(spring_year, 12, 31)
+
+    def current_season_problem_rows(self):
+        """Задачи текущего сезона, отмеченные для этого регионального турнира."""
+        current = current_tournament_season()
+        if not current:
+            return [], None
+        qs = (
+            TournamentProblem.objects.filter(
+                page=current,
+                regional_links__tournament=self,
+            )
+            .order_by("number")
+            .distinct()
+        )
+        return list(qs), current
+
     def as_payload(self):
+        problems_qs, current = self.current_season_problem_rows()
+        season_label = academic_season_label(current.year) if current else ""
+        problems = [
+            {
+                "number": p.number,
+                "title": p.title,
+                "statement": p.statement,
+            }
+            for p in problems_qs
+        ]
+        pending = bool(current) and len(problems) == 0
+        if pending:
+            pending_text = f"Задачи на сезон «{season_label}» ещё не выбраны."
+        elif not current:
+            pending_text = "Текущий сезон не задан — задачи регионального турнира пока не привязаны."
+            pending = True
+        else:
+            pending_text = ""
         return {
-            "code": self.region_code,
+            "code": self.payload_code,
+            "region_code": self.region_code,
             "region": self.region_name,
             "has_tournament": self.has_tournament,
             "title": self.title,
@@ -807,14 +1077,10 @@ class RegionalTournament(ClusterableModel, Orderable):
             "when": self.when_label(),
             "contacts": self.contacts,
             "info_html": expand_db_html(self.info) if self.info else "",
-            "problems": [
-                {
-                    "number": p.number,
-                    "title": p.title,
-                    "statement": p.statement,
-                }
-                for p in self.problems.all().order_by("number", "sort_order")
-            ],
+            "problems": problems,
+            "problems_pending": pending,
+            "problems_pending_text": pending_text,
+            "season_label": season_label,
             "results_text": self.results_text,
             "results_url": self.results_url,
             "results_label": self.results_label or "Оригинал результатов",
@@ -831,7 +1097,34 @@ class RegionalTournament(ClusterableModel, Orderable):
         }
 
 
+class RegionalTournamentProblem(models.Model):
+    """Какие задачи текущего (или прошлого) сезона играют на региональном турнире."""
+
+    tournament = models.ForeignKey(
+        RegionalTournament,
+        on_delete=models.CASCADE,
+        related_name="season_problem_links",
+        verbose_name="Региональный турнир",
+    )
+    problem = models.ForeignKey(
+        "home.TournamentProblem",
+        on_delete=models.CASCADE,
+        related_name="regional_links",
+        verbose_name="Задача сезона",
+    )
+
+    class Meta:
+        verbose_name = "Задача регионального турнира"
+        verbose_name_plural = "Задачи региональных турниров"
+        unique_together = [("tournament", "problem")]
+
+    def __str__(self):
+        return f"{self.tournament_id}: задача {self.problem_id}"
+
+
 class RegionalProblem(Orderable):
+    """Устарело: свободный текст задач. Сайт использует RegionalTournamentProblem."""
+
     tournament = ParentalKey(
         RegionalTournament,
         on_delete=models.CASCADE,

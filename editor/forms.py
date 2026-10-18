@@ -185,7 +185,12 @@ class PhotoUploadForm(forms.Form):
 
 
 class RegionalTournamentForm(forms.Form):
-    region_code = forms.ChoiceField(label="Субъект РФ", choices=())
+    slug = forms.SlugField(
+        label="Код турнира",
+        max_length=64,
+        help_text="Уникальный ключ: sib, mos-mipt, beaver…",
+    )
+    region_code = forms.ChoiceField(label="Субъект РФ / онлайн", choices=())
     has_tournament = forms.BooleanField(
         label="Есть турнир (золотая подсветка на карте)",
         required=False,
@@ -222,11 +227,12 @@ class RegionalTournamentForm(forms.Form):
     )
     results_url = forms.CharField(label="Ссылка на оригинал результатов", required=False, max_length=500)
     results_label = forms.CharField(label="Подпись к ссылке", required=False, max_length=160)
-    problems_text = forms.CharField(
-        label="Задачи (по одной на строку: номер | название | условие)",
+    season_problem_ids = forms.MultipleChoiceField(
+        label="Задачи текущего сезона",
         required=False,
-        widget=forms.Textarea(attrs={"rows": 8}),
-        help_text="Пример: 1 | Маятник | Исследуйте колебания…",
+        widget=forms.CheckboxSelectMultiple,
+        choices=(),
+        help_text="Отметьте задачи сезона, которые играют на этом региональном турнире.",
     )
     photos_text = forms.CharField(
         label="Фото (по одной внешней ссылке на строку)",
@@ -234,9 +240,14 @@ class RegionalTournamentForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 3}),
     )
 
-    def __init__(self, *args, region_choices=None, **kwargs):
+    def __init__(self, *args, region_choices=None, season_problem_choices=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["region_code"].choices = region_choices or []
+        self.fields["season_problem_ids"].choices = season_problem_choices or []
+        if not season_problem_choices:
+            self.fields["season_problem_ids"].help_text = (
+                "Нет задач текущего сезона — сначала заведите их в разделе «Сезоны»."
+            )
 
     def clean_results_url(self):
         value = (self.cleaned_data.get("results_url") or "").strip()
@@ -254,23 +265,13 @@ class RegionalTournamentForm(forms.Form):
             urls.append(validate_public_http_url(line, field_name="Фото"))
         return urls
 
-    def clean_problems_text(self):
-        raw = self.cleaned_data.get("problems_text") or ""
-        rows = []
-        for line in raw.splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            parts = [p.strip() for p in line.split("|", 2)]
-            if len(parts) < 2:
-                raise ValidationError("Строка задачи: «номер | название | условие».")
-            try:
-                number = int(parts[0])
-            except ValueError as exc:
-                raise ValidationError("Номер задачи должен быть числом.") from exc
-            title = parts[1]
-            statement = parts[2] if len(parts) > 2 else ""
-            if not title:
-                raise ValidationError("У задачи нужно название.")
-            rows.append({"number": number, "title": title, "statement": statement})
-        return rows
+    def clean_season_problem_ids(self):
+        raw = self.cleaned_data.get("season_problem_ids") or []
+        ids = []
+        allowed = {str(value) for value, _label in self.fields["season_problem_ids"].choices}
+        for value in raw:
+            value = str(value)
+            if value not in allowed:
+                raise ValidationError("Выбрана задача не из текущего сезона.")
+            ids.append(int(value))
+        return ids

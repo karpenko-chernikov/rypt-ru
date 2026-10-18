@@ -35,7 +35,8 @@
                     <div class="prose russia-info" data-f="info"></div>
                 </div>
                 <div class="russia-block" data-block="problems">
-                    <h3>Задачи года</h3>
+                    <h3>Задачи сезона</h3>
+                    <p class="russia-problems-pending is-hidden" data-f="problems_pending"></p>
                     <ol class="russia-problems" data-f="problems"></ol>
                 </div>
                 <div class="russia-block" data-block="results">
@@ -55,4 +56,53 @@
     </div>
     <script type="application/json" data-russia-data>{{ regions_json|safe }}</script>
     <script type="application/json" data-russia-names>{{ region_names_json|safe }}</script>
+
+    {% if problems_matrix %}
+    <section class="russia-matrix" data-russia-matrix aria-label="Задачи сезона на региональных турнирах">
+        <h2 class="russia-matrix-title">Задачи сезона {{ problems_matrix.season_label }}</h2>
+        <p class="russia-matrix-lead">На каких турнирах играет каждая задача. Столбцы — по датам; открытый всероссийский — справа. Клик по столбцу открывает карточку.</p>
+        {% if problems_matrix.columns %}
+        <div class="russia-matrix-scroll">
+            <table class="russia-matrix-table">
+                <thead>
+                    <tr>
+                        <th scope="col" class="russia-matrix-corner">Задача</th>
+                        {% for col in problems_matrix.columns %}
+                        <th scope="col"{% if col.is_national %} class="russia-matrix-national"{% endif %}>
+                            <button
+                                type="button"
+                                class="russia-matrix-col{% if col.is_national %} is-national{% endif %}"
+                                data-matrix-region="{{ col.code }}"
+                                title="{{ col.region }} — {{ col.title }}{% if col.when %} · {{ col.when }}{% endif %}"
+                            >
+                                <span class="russia-matrix-col-name">{{ col.label }}</span>
+                                {% if col.when %}<span class="russia-matrix-col-when">{{ col.when }}</span>{% endif %}
+                            </button>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in problems_matrix.rows %}
+                    <tr>
+                        <th scope="row">
+                            <span class="russia-matrix-num">{{ row.number }}</span>
+                            <span class="russia-matrix-name">{{ row.title }}</span>
+                        </th>
+                        {% for on in row.cells %}
+                        <td class="{% if on %}is-on{% endif %}" {% if on %}title="Играется"{% else %}title="Не играет"{% endif %}>
+                            {% if on %}<span class="russia-matrix-dot" aria-label="Играется"></span>{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="russia-matrix-legend"><span class="russia-matrix-swatch" aria-hidden="true"></span> задача играет на турнире</p>
+        {% else %}
+        <p class="russia-matrix-empty">Региональные турниры ещё не отмечены на карте — столбцы появятся автоматически.</p>
+        {% endif %}
+    </section>
+    {% endif %}
 </section>

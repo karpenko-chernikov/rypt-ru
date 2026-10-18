@@ -7,8 +7,10 @@ from home.models import (
     RussiaTournamentsPage,
     TournamentIndexPage,
     TournamentPage,
+    build_russia_problems_matrix,
     load_russia_svg,
 )
+from home.documents import CHARTER_DOCX, CHARTER_HTML, REGULATION_PDF, VOK
 from home.partners import PARTNERS
 from home.regions import REGIONS
 import json
@@ -16,7 +18,7 @@ import json
 NAV_SLUGS = [
     ("news", "Новости"),
     ("tournaments", "Сезоны"),
-    ("rules", "Правила"),
+    ("rules", "Документы"),
     ("russia", "Турниры в России"),
     ("materials", "Полезные материалы"),
     ("partners", "Партнеры"),
@@ -29,7 +31,7 @@ def _same_path(a, b):
 
 
 def _russia_slide(russia_page, request):
-    russia_page.regions.prefetch_related("problems", "photos")
+    russia_page.regions.prefetch_related("season_problem_links__problem", "photos")
     return {
         "title": "Турниры в России",
         "url": russia_page.get_url(request=request),
@@ -38,6 +40,7 @@ def _russia_slide(russia_page, request):
         "svg": load_russia_svg(),
         "regions_json": json.dumps(russia_page.regions_payload(), ensure_ascii=False),
         "region_names_json": json.dumps(REGIONS, ensure_ascii=False),
+        "problems_matrix": build_russia_problems_matrix(russia_page),
     }
 
 
@@ -134,6 +137,18 @@ def site_nav(request):
                             "partners": PARTNERS,
                         }
                     )
+                elif slug == "rules":
+                    slides.append(
+                        {
+                            "title": title,
+                            "url": page.get_url(request=request),
+                            "kind": "documents",
+                            "regulation_pdf": REGULATION_PDF,
+                            "charter_docx": CHARTER_DOCX,
+                            "charter_html": CHARTER_HTML,
+                            "vok": VOK,
+                        }
+                    )
                 else:
                     slides.append(
                         {
@@ -150,7 +165,9 @@ def site_nav(request):
     for i, slide in enumerate(slides):
         if _same_path(slide["url"], path):
             slide_index = i
-            is_deck = True
+            # PDF/iframe внутри CSS-transform колоды ломает клики и масштаб —
+            # документы всегда как обычная страница.
+            is_deck = slide.get("kind") != "documents"
             break
     for i, slide in enumerate(slides):
         url = (slide.get("url") or "/").rstrip("/") or "/"

@@ -3,14 +3,21 @@
 {% block content %}
 <p class="editor-back"><a href="{% url 'editor:russia_list' %}">← Турниры в России</a></p>
 <h1 class="editor-h1">{{ title }}</h1>
+{% if current_season %}
+<p class="editor-muted">Задачи отмечаются для текущего сезона «{{ season_label }}» ({{ current_season.display_title }}). При смене текущего сезона прежний набор сохранится в истории, на сайте будут видны только задачи нового сезона.</p>
+{% else %}
+<p class="editor-muted">Текущий сезон не задан — сначала отметьте сезон как текущий и заведите задачи.</p>
+{% endif %}
 <form method="post" class="editor-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for field in form %}
-    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-    {{ field }}
-    {% if field.help_text %}<p class="editor-muted">{{ field.help_text }}</p>{% endif %}
-    {{ field.errors }}
+    <div class="editor-field{% if field.name == 'season_problem_ids' %} editor-field-checks{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="editor-muted">{{ field.help_text }}</p>{% endif %}
+        {{ field.errors }}
+    </div>
     {% endfor %}
     <p style="margin-top:1.2rem"><button type="submit" class="editor-btn editor-btn-primary">Сохранить</button></p>
 </form>
