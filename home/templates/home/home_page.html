@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static wagtailcore_tags %}
 
 {% block title %}Российский Турнир Юных Физиков{% endblock %}
 {% block title_suffix %}{% endblock %}
@@ -18,5 +18,8 @@
         <h1 class="hero-title">Российский Турнир Юных Физиков</h1>
     </div>
 </section>
+{% if page.intro %}
+<div class="home-about prose">{{ page.intro|richtext }}</div>
+{% endif %}
 {% include "home/includes/home_tournament_info.html" with info=page.info_payload %}
 {% endblock %}

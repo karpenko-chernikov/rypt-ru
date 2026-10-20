@@ -374,6 +374,14 @@ main {
     50% { background-position: 0% 50%; }
 }
 
+.home-about {
+    position: relative;
+    z-index: 1;
+    max-width: 74rem;
+    margin: 2.4rem auto 0;
+    padding: 0 1.4rem;
+}
+
 .home-info {
     position: relative;
     z-index: 1;
@@ -537,6 +545,7 @@ main {
 }
 
 .prose { font-size: 1.05rem; max-width: 38rem; color: var(--fg); }
+.home-about.prose { max-width: 70rem; }
 .prose a { border-bottom: 1px solid var(--fg); text-decoration: none; }
 .prose a:hover { color: var(--gold); border-bottom-color: var(--gold); }
 .prose p { margin: 0 0 0.9rem; }

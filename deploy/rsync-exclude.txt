@@ -16,3 +16,4 @@ data
 reader/data
 reader/exports
 ._*
+update.sh

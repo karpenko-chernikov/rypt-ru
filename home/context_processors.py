@@ -74,6 +74,7 @@ def site_nav(request):
                 "title": "Главная",
                 "url": "/",
                 "kind": "home",
+                "intro": home.intro,
                 "info": home.info_payload(),
             }
         )
