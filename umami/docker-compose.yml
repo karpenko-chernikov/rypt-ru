@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - umami-db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://umami:${POSTGRES_PASSWORD}@db:5432/umami
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${APP_SECRET}
+      HASH_SALT: ${HASH_SALT}
+      # Umami слушает на 127.0.0.1 и проксируется через nginx.
+      CLIENT_IP_HEADER: x-forwarded-for
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+volumes:
+  umami-db:

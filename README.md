@@ -115,6 +115,28 @@ systemctl restart rypt
 `systemctl restart rypt`. Django-админка `/django-admin/` остаётся недоступной.
 На боевом сайте этот флаг не ставится.
 
+## Аналитика (Umami)
+
+Трекинг подключается через self-hosted Umami. Переменные окружения на стороне сайта:
+
+- `UMAMI_SCRIPT_URL` — URL скрипта, например `https://analytics.example.com/script.js`;
+- `UMAMI_WEBSITE_ID` — ID сайта из админки Umami;
+- `UMAMI_DOMAINS` — необязательно, ограничивает трекинг перечисленными доменами.
+
+Пустые значения выключают трекинг. Скрипт подключается только на публичных страницах
+([`rypt/templates/base.html`](rypt/templates/base.html)), кабинет редактора не трекается.
+
+Серверная часть — каталог [`umami/`](umami/) (Docker Compose: Umami + PostgreSQL).
+Запускается как на том же VPS, что и сайт, так и на отдельном (зарубежном) сервере;
+подробности в [`umami/README.md`](umami/README.md).
+
+Краткий план:
+
+1. Развернуть `umami/` (docker compose + nginx + certbot) — см. [`umami/README.md`](umami/README.md).
+2. Войти в админку Umami (по умолчанию `admin` / `umami`), сменить пароль, создать сайт и скопировать его Website ID.
+3. В `/etc/rypt.env` добавить `UMAMI_SCRIPT_URL=...` и `UMAMI_WEBSITE_ID=...`, при необходимости `UMAMI_DOMAINS=...`.
+4. Перезапустить сервис: `systemctl restart rypt`.
+
 ## Полезные материалы
 
 Раздел `materials` — дерево страниц Wagtail: `MaterialsIndexPage` (индекс) → `MaterialGroupPage` (группа-заголовок) → `MaterialPage` (материал). Карточки на индексе ведут на страницы материалов. Правится локально через админку Wagtail `/redaktura/` (доступна только при `DEBUG=True`); на живом сайте этого раздела в кабинете нет.

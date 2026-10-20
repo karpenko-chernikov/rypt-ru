@@ -76,6 +76,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "home.context_processors.site_nav",
+                "home.context_processors.umami_analytics",
             ],
         },
     },
@@ -198,6 +199,12 @@ CSRF_COOKIE_SAMESITE = "Lax"
 FILE_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 WAGTAILIMAGES_EXTENSIONS = ["gif", "jpg", "jpeg", "png", "webp"]
+
+# Аналитика (Umami, self-hosted). Пустые значения = трекинг выключен.
+# Задаются в /etc/rypt.env на сервере (или в .env при локальной разработке).
+UMAMI_SCRIPT_URL = os.environ.get("UMAMI_SCRIPT_URL", "").strip()
+UMAMI_WEBSITE_ID = os.environ.get("UMAMI_WEBSITE_ID", "").strip()
+UMAMI_DOMAINS = os.environ.get("UMAMI_DOMAINS", "").strip()
 
 # Кабинет: регистрация только по одноразовым приглашениям
 # (python manage.py create_editor_invite)

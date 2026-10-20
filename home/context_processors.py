@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from home.models import (
     ContactsPage,
     ContentPage,
@@ -215,4 +217,12 @@ def site_nav(request):
         "slides": slides,
         "slide_index": slide_index,
         "is_deck": is_deck,
+    }
+
+
+def umami_analytics(request):
+    return {
+        "umami_script_url": settings.UMAMI_SCRIPT_URL,
+        "umami_website_id": settings.UMAMI_WEBSITE_ID,
+        "umami_domains": settings.UMAMI_DOMAINS,
     }
