@@ -14,7 +14,7 @@ from home.models import (
     build_russia_problems_matrix,
     load_russia_svg,
 )
-from home.documents import CHARTER_DOCX, CHARTER_HTML, REGULATION_PDF, VOK
+from home.documents import CHARTER_PDF, REGULATION_PDF, VOK
 from home.partners import PARTNERS
 from home.regions import REGIONS
 import json
@@ -176,8 +176,7 @@ def site_nav(request):
                             "url": page.get_url(request=request),
                             "kind": "documents",
                             "regulation_pdf": REGULATION_PDF,
-                            "charter_docx": CHARTER_DOCX,
-                            "charter_html": CHARTER_HTML,
+                            "charter_pdf": CHARTER_PDF,
                             "vok": VOK,
                         }
                     )

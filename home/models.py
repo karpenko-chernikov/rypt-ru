@@ -581,11 +581,10 @@ class ContentPage(Page):
 
             context["partners"] = PARTNERS
         if self.slug == "rules":
-            from home.documents import CHARTER_DOCX, CHARTER_HTML, REGULATION_PDF, VOK
+            from home.documents import CHARTER_PDF, REGULATION_PDF, VOK
 
             context["regulation_pdf"] = REGULATION_PDF
-            context["charter_docx"] = CHARTER_DOCX
-            context["charter_html"] = CHARTER_HTML
+            context["charter_pdf"] = CHARTER_PDF
             context["vok"] = VOK
         return context
 

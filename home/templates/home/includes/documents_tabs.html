@@ -36,15 +36,15 @@
                 <div class="documents-toolbar">
                     <h2 class="documents-h2">Устав общественного движения</h2>
                     <p class="documents-lead">
-                        <a href="{% static charter_html %}" target="_blank" rel="noopener">Открыть</a>
+                        <a href="{% static charter_pdf %}" target="_blank" rel="noopener">Открыть PDF</a>
                         ·
-                        <a href="{% static charter_docx %}" download>Скачать DOCX</a>
+                        <a href="{% static charter_pdf %}" download>Скачать</a>
                     </p>
                 </div>
                 <div
-                    class="documents-viewer is-html"
-                    data-doc-viewer="html"
-                    data-src="{% static charter_html %}"
+                    class="documents-viewer"
+                    data-doc-viewer="pdf"
+                    data-src="{% static charter_pdf %}"
                     role="region"
                     aria-label="Устав, просмотр"
                 ></div>

@@ -1,8 +1,7 @@
 """Контент раздела «Документы» (статические файлы + состав ВОК)."""
 
 REGULATION_PDF = "docs/reglament-rypt.pdf"
-CHARTER_DOCX = "docs/ustav-obschestvennogo-dvizhenia.docx"
-CHARTER_HTML = "docs/ustav-obschestvennogo-dvizhenia.html"
+CHARTER_PDF = "docs/ustav-obschestvennogo-dvizhenia.pdf"
 
 VOK = {
     "title": "Действующий ВОК",
