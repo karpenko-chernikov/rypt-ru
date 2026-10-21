@@ -6,6 +6,8 @@
     var deck = document.querySelector(".deck");
     var railGlass = document.querySelector(".rail-glass");
     var railBar = document.querySelector(".rail-bar");
+    var railPrev = document.querySelector(".rail-prev");
+    var railNext = document.querySelector(".rail-next");
 
     function setTheme(name) {
         root.setAttribute("data-theme", name);
@@ -71,6 +73,44 @@
             railGlass.style.setProperty("--gx", (event.clientX - box.left) + "px");
             railGlass.style.setProperty("--gy", (event.clientY - box.top) + "px");
         });
+    }
+
+    function updateRailArrows() {
+        if (!railBar) return;
+        var maxScroll = railBar.scrollWidth - railBar.clientWidth;
+        var canScroll = maxScroll > 1;
+        var atStart = railBar.scrollLeft <= 1;
+        var atEnd = railBar.scrollLeft >= maxScroll - 1;
+        if (railPrev) {
+            railPrev.classList.toggle("is-hidden", !canScroll);
+            railPrev.classList.toggle("is-disabled", atStart);
+        }
+        if (railNext) {
+            railNext.classList.toggle("is-hidden", !canScroll);
+            railNext.classList.toggle("is-disabled", atEnd);
+        }
+    }
+
+    if (railBar && railPrev && railNext) {
+        railPrev.addEventListener("click", function () {
+            railBar.scrollBy({
+                left: -Math.max(120, railBar.clientWidth * 0.7),
+                behavior: reduce ? "auto" : "smooth"
+            });
+        });
+        railNext.addEventListener("click", function () {
+            railBar.scrollBy({
+                left: Math.max(120, railBar.clientWidth * 0.7),
+                behavior: reduce ? "auto" : "smooth"
+            });
+        });
+        railBar.addEventListener("scroll", updateRailArrows, { passive: true });
+        window.addEventListener("resize", updateRailArrows);
+        window.addEventListener("load", updateRailArrows);
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(updateRailArrows);
+        }
+        updateRailArrows();
     }
 
     function hidePreloader() {

@@ -132,6 +132,16 @@
             {% endif %}
         </main>
         <nav class="rail" aria-label="Разделы сайта">
+            <button class="rail-arrow rail-prev" type="button" aria-label="Прокрутить меню влево">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M9 2 4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="rail-arrow rail-next" type="button" aria-label="Прокрутить меню вправо">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="m5 2 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
             <div class="rail-glass">
                 <div class="rail-bar">
                 {% for slide in slides %}

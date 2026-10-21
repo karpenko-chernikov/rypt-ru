@@ -1173,13 +1173,13 @@ main {
     z-index: 20;
     width: max-content;
     max-width: calc(100vw - 1.8rem);
+    transform: translateX(-50%);
 }
 
 .rail-glass {
     --gx: 50%;
     --gy: 0px;
     position: relative;
-    transform: translateX(-50%);
     background: var(--glass);
     backdrop-filter: blur(22px) saturate(1.7);
     -webkit-backdrop-filter: blur(22px) saturate(1.7);
@@ -1210,12 +1210,59 @@ main {
     gap: 1.25rem;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 0.82rem 2.8rem 0.82rem 2.1rem;
-    scrollbar-width: none;
+    padding: 0.82rem 3.1rem 0.82rem 2.9rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted) transparent;
     -webkit-overflow-scrolling: touch;
 }
 
-.rail-bar::-webkit-scrollbar { display: none; }
+.rail-bar::-webkit-scrollbar {
+    height: 5px;
+}
+
+.rail-bar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.rail-bar::-webkit-scrollbar-thumb {
+    background: var(--muted);
+    border-radius: 999px;
+}
+
+.rail-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 1.9rem;
+    height: 1.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--bar-stroke);
+    background: var(--glass);
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    backdrop-filter: blur(22px) saturate(1.7);
+    -webkit-backdrop-filter: blur(22px) saturate(1.7);
+    box-shadow: inset 0 1px 0 var(--glass-shine);
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.rail-prev { left: 0.55rem; }
+.rail-next { right: 0.55rem; }
+
+.rail-arrow:hover,
+.rail-arrow:focus-visible { color: var(--fg); }
+
+.rail-arrow.is-disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.rail-arrow.is-hidden { display: none; }
 
 .rail a {
     flex: 0 0 auto;
@@ -1224,7 +1271,7 @@ main {
     gap: 0.42rem;
     white-space: nowrap;
     text-decoration: none;
-    font-size: 0.78rem;
+    font-size: 0.95rem;
     letter-spacing: 0.01em;
     color: var(--muted);
     line-height: 1;
@@ -1267,9 +1314,15 @@ main {
     .rail { bottom: 0.85rem; width: calc(100vw - 1.2rem); }
     .rail-bar {
         gap: 0.95rem;
-        padding: 0.64rem 1.6rem 0.64rem 1.3rem;
+        padding: 0.64rem 2.4rem 0.64rem 2.2rem;
     }
-    .rail a { font-size: 0.72rem; }
+    .rail a { font-size: 0.86rem; }
+    .rail-arrow {
+        width: 1.6rem;
+        height: 1.6rem;
+    }
+    .rail-prev { left: 0.4rem; }
+    .rail-next { right: 0.4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
