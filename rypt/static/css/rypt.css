@@ -515,9 +515,21 @@ main {
     padding-bottom: 4rem;
 }
 
-.page.season,
-.page.seasons {
+.page.season {
     max-width: 46rem;
+}
+
+.page.seasons {
+    max-width: min(72rem, 98vw);
+}
+
+.slide article.page:has(.notices),
+.page:has(.notices),
+.slide article.page:has(.season-list),
+.page:has(.season-list),
+.slide article.page:has(.materials-groups),
+.page:has(.materials-groups) {
+    max-width: min(72rem, 98vw);
 }
 
 .slide article.page:has(.russia-map),
@@ -1180,7 +1192,7 @@ main {
     --gx: 50%;
     --gy: 0px;
     position: relative;
-    background: var(--glass);
+    background: color-mix(in srgb, var(--bar) 75%, transparent);
     backdrop-filter: blur(22px) saturate(1.7);
     -webkit-backdrop-filter: blur(22px) saturate(1.7);
     box-shadow:
@@ -1241,7 +1253,7 @@ main {
     justify-content: center;
     border-radius: 50%;
     border: 1px solid var(--bar-stroke);
-    background: var(--glass);
+    background: color-mix(in srgb, var(--bar) 75%, transparent);
     color: var(--muted);
     cursor: pointer;
     padding: 0;
@@ -2067,10 +2079,10 @@ main {
 /* —— Документы (вне колоды: PDF/HTML viewer) —— */
 .slide article.page:has(.documents),
 .page.page-documents {
-    max-width: min(120rem, calc(100vw - 1.5rem));
+    max-width: min(72rem, 98vw);
     width: 100%;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 1.4rem;
+    padding-right: 1.4rem;
     padding-bottom: 6.5rem;
 }
 
@@ -2354,7 +2366,7 @@ body:has(.page-documents .documents) main {
 
 /* —— Доска заявок на тренировочные бои —— */
 .page-training-board {
-    max-width: 46rem;
+    max-width: min(72rem, 98vw);
 }
 
 .page-training-board h2 {
@@ -2473,7 +2485,23 @@ body:has(.page-documents .documents) main {
 
 .board-cards {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
+    align-items: start;
+}
+
+.board-cards > h2 {
+    grid-column: 1 / -1;
+}
+
+.board-card:only-child {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+    .board-cards {
+        grid-template-columns: 1fr;
+    }
 }
 
 .board-card {
