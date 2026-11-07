@@ -884,7 +884,15 @@ class TournamentPage(Page):
             by_kind.setdefault(row.kind, []).append(row)
 
         def table(kind):
-            return sorted(by_kind.get(kind, []), key=ranking_score, reverse=True)
+            # Сначала порядок заполнения (sort_order), затем сумма —
+            # иначе места вроде 1995 (ранжирование по R, а в колонке SP) переставляются.
+            return sorted(
+                by_kind.get(kind, []),
+                key=lambda row: (
+                    row.sort_order if row.sort_order is not None else 10**9,
+                    -ranking_score(row),
+                ),
+            )
 
         context["ranking"] = table(TournamentResultRow.KIND_RANKING)
         context["league_a"] = table(TournamentResultRow.KIND_LEAGUE_A)
