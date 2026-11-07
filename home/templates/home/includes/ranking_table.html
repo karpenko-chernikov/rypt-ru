@@ -4,7 +4,7 @@
             <th>Место</th>
             <th>Команда</th>
             {% if has_city %}<th>Город</th>{% endif %}
-            <th>{{ points_label|default:"Сумма" }}</th>
+            {% if has_points %}<th>{{ points_label|default:"Сумма" }}</th>{% endif %}
         </tr>
     </thead>
     <tbody>
@@ -13,7 +13,7 @@
             <td>{{ row.place }}</td>
             <td>{{ row.team }}</td>
             {% if has_city %}<td>{{ row.city }}</td>{% endif %}
-            <td>{{ row.points }}</td>
+            {% if has_points %}<td>{{ row.points }}</td>{% endif %}
         </tr>
         {% endfor %}
     </tbody>

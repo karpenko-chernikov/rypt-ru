@@ -925,6 +925,7 @@ class TournamentPage(Page):
             "iypt_final",
         ):
             context[f"{key}_has_city"] = any(row.city for row in context[key])
+            context[f"{key}_has_points"] = any(str(row.points or "").strip() for row in context[key])
             context[f"{key}_points_label"] = ranking_points_label(context[key])
         context["photos"] = list(self.photos.all())
         context["album_urls"] = self.album_urls()
