@@ -21,7 +21,9 @@ MORE_URL = "/static/docs/results/1995-komandnyy-zachet.jpg"
 IYPT_MORE_URL = "https://archive.iypt.org/factsheets/"
 IYPT_MORE_LABEL = "Оригинал"
 
-IYPT_TEAM = """На VIII IYPT (4–11 июня 1995, Спала, Польша) выступали две российские команды: СУНЦ МГУ и Новгород."""
+IYPT_TEAM = """На VIII IYPT (4–11 июня 1995, Спала, Польша) выступали две российские команды: СУНЦ МГУ и Новгород.
+
+Команды заняли 13-е и 14-е места."""
 
 # Место по скану (по сумме R); в баллах — сумма SP.
 RANKING = [

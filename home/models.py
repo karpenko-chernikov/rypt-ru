@@ -765,7 +765,12 @@ class TournamentPage(Page):
     date_start = models.DateField("Начало", blank=True, null=True)
     date_end = models.DateField("Конец", blank=True, null=True)
     iypt_team = models.TextField("Кто поехал на IYPT", blank=True)
-    iypt_more_url = models.URLField("Подробные результаты IYPT, ссылка", blank=True)
+    iypt_more_url = models.CharField(
+        "Подробные результаты IYPT, ссылка или файл",
+        max_length=500,
+        blank=True,
+        help_text="Внешняя ссылка (https://…) или путь к файлу (/static/…). Несколько — с новой строки.",
+    )
     iypt_more_label = models.CharField(
         "Подпись к ссылке на IYPT",
         max_length=160,
@@ -857,6 +862,10 @@ class TournamentPage(Page):
         text = self.results_more_url or ""
         return [line.strip() for line in text.splitlines() if line.strip()]
 
+    def iypt_more_links(self):
+        text = self.iypt_more_url or ""
+        return [line.strip() for line in text.splitlines() if line.strip()]
+
     def album_ref(self):
         urls = self.album_urls()
         if not urls:
@@ -917,8 +926,14 @@ class TournamentPage(Page):
         )
         context["has_iypt_tables"] = bool(context["iypt_ranking"] or context["iypt_final"])
         context["has_iypt"] = bool(
-            self.iypt_team or self.iypt_more_url or context["has_iypt_tables"]
+            self.iypt_team or self.iypt_more_links or context["has_iypt_tables"]
         )
+        if self.year == 1997:
+            context["iypt_ranking_heading"] = "До полуфинала"
+            context["iypt_final_heading"] = "Полуфинал"
+        else:
+            context["iypt_ranking_heading"] = "Рейтинг команд"
+            context["iypt_final_heading"] = "Финал"
         for key in (
             "ranking",
             "league_a",

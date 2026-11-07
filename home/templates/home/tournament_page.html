@@ -163,27 +163,51 @@
 
         {% if has_iypt %}
         <section class="season-panel" role="tabpanel" id="panel-iypt" aria-labelledby="tab-iypt" hidden>
-            {% if page.iypt_team or page.iypt_more_url %}
+            {% if page.iypt_team or page.iypt_more_links %}
             <div class="when iypt">
                 {% if page.iypt_team %}
                 <p>{{ page.iypt_team|linebreaksbr }}</p>
                 {% endif %}
-                {% if page.iypt_more_url %}
-                <p class="prose">Подробную таблицу можно посмотреть <a href="{{ page.iypt_more_url }}" rel="noreferrer">здесь</a>.</p>
+                {% with links=page.iypt_more_links %}
+                {% if links %}
+                <p class="prose">
+                    {% if page.iypt_more_label %}
+                        {% with label=page.iypt_more_label %}
+                            {% if links|length == 1 %}
+                            <a href="{{ links.0 }}" rel="noreferrer">{{ label }}</a>
+                            {% else %}
+                            {{ label }} —
+                            {% for href in links %}
+                            <a href="{{ href }}" rel="noreferrer">лист {{ forloop.counter }}</a>{% if not forloop.last %} · {% endif %}
+                            {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                            {% if links|length == 1 %}
+                            <a href="{{ links.0 }}" rel="noreferrer">Оригинал</a>
+                            {% else %}
+                            Оригинал —
+                            {% for href in links %}
+                            <a href="{{ href }}" rel="noreferrer">лист {{ forloop.counter }}</a>{% if not forloop.last %} · {% endif %}
+                            {% endfor %}
+                            {% endif %}
+                    {% endif %}
+                </p>
                 {% endif %}
+                {% endwith %}
             </div>
             {% endif %}
             {% if has_iypt_tables %}
             <div class="results-split">
                 {% if iypt_ranking %}
                 <div>
-                    <h2>Рейтинг команд</h2>
+                    <h2>{{ iypt_ranking_heading }}</h2>
                     {% include "home/includes/ranking_table.html" with rows=iypt_ranking has_city=iypt_ranking_has_city has_points=iypt_ranking_has_points points_label=iypt_ranking_points_label %}
                 </div>
                 {% endif %}
                 {% if iypt_final %}
                 <div>
-                    <h2>Финал</h2>
+                    <h2>{{ iypt_final_heading }}</h2>
                     {% include "home/includes/ranking_table.html" with rows=iypt_final has_city=iypt_final_has_city has_points=iypt_final_has_points points_label=iypt_final_points_label %}
                 </div>
                 {% endif %}
