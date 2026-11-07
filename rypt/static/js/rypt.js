@@ -637,11 +637,15 @@
             return rc;
         }
 
-        function tournamentKeyForMapRegion(regionCode) {
-            var keys = Object.keys(data).filter(function (key) {
+        function tournamentKeysForMapRegion(regionCode) {
+            return Object.keys(data).filter(function (key) {
                 var card = data[key];
                 return card && card.has_tournament && mapCodeOf(card, key) === regionCode;
             });
+        }
+
+        function tournamentKeyForMapRegion(regionCode) {
+            var keys = tournamentKeysForMapRegion(regionCode);
             return keys.length ? keys[0] : regionCode;
         }
 
@@ -692,6 +696,34 @@
             if (card.city) metaParts.push(card.city);
             if (card.when) metaParts.push(card.when);
             field("meta").textContent = metaParts.join(" · ");
+
+            var switchEl = field("tour_switch");
+            if (switchEl) {
+                var siblings = tournamentKeysForMapRegion(mapCodeOf(card, code) || code);
+                if (siblings.length > 1) {
+                    switchEl.innerHTML = "";
+                    switchEl.hidden = false;
+                    switchEl.classList.remove("is-hidden");
+                    siblings.forEach(function (sibKey) {
+                        var sib = data[sibKey];
+                        if (!sib) return;
+                        var btn = document.createElement("button");
+                        btn.type = "button";
+                        btn.className = "russia-tour-switch-btn" + (sibKey === code ? " is-on" : "");
+                        btn.textContent = sib.short_title || sib.city || sib.title || sibKey;
+                        btn.title = sib.title || sibKey;
+                        btn.addEventListener("click", function () {
+                            lockedCode = sibKey;
+                            selectRegion(sibKey, activePath);
+                        });
+                        switchEl.appendChild(btn);
+                    });
+                } else {
+                    switchEl.innerHTML = "";
+                    switchEl.hidden = true;
+                    switchEl.classList.add("is-hidden");
+                }
+            }
 
             var hasContacts = !!(card.contacts && String(card.contacts).trim());
             showBlock("contacts", hasContacts);

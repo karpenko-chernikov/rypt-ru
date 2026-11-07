@@ -1255,6 +1255,7 @@ class RegionalTournament(ClusterableModel, Orderable):
             "region": self.region_name,
             "has_tournament": self.has_tournament,
             "title": self.title,
+            "short_title": matrix_tournament_label(self.title, self.city or self.region_name),
             "city": self.city,
             "when": self.when_label(),
             "contacts": self.contacts,

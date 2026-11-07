@@ -1505,6 +1505,35 @@ main {
     color: var(--muted);
 }
 
+.russia-tour-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+}
+
+.russia-tour-switch-btn {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.82rem;
+    line-height: 1.2;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+}
+
+.russia-tour-switch-btn:hover,
+.russia-tour-switch-btn:focus-visible {
+    border-color: var(--gold);
+}
+
+.russia-tour-switch-btn.is-on {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
 .russia-panel-title {
     margin: 0 0 0.45rem;
     font-family: "Alumni Sans", "Arial Narrow", sans-serif;
