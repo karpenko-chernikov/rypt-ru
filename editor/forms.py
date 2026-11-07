@@ -145,6 +145,14 @@ class LinkForm(forms.Form):
 
 
 class ScanUploadForm(forms.Form):
+    kind = forms.ChoiceField(
+        label="Раздел",
+        choices=[
+            ("season", "Задания сезона"),
+            ("final", "Задания финала"),
+        ],
+        initial="season",
+    )
     caption = forms.CharField(label="Подпись", max_length=200, required=False)
     image = forms.ImageField(label="Страница или левая полоса")
     image_right = forms.ImageField(label="Правая полоса (разворот)", required=False)

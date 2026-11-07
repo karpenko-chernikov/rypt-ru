@@ -741,6 +741,21 @@ main {
 
 .season-switch { margin-top: 1.6rem; }
 
+.season-switch--nested {
+    margin-top: 0;
+}
+
+.season-switch--nested > .season-tabs {
+    margin-bottom: 1rem;
+}
+
+.problems-subhead {
+    margin: 0 0 1rem;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
 .season-tabs {
     display: flex;
     flex-wrap: wrap;

@@ -39,6 +39,7 @@
         <li>
             <div>
                 {% if s.caption %}{{ s.caption }}{% else %}Скан {{ forloop.counter }}{% endif %}
+                {% if s.kind == "final" %}<span class="editor-badge">финал</span>{% endif %}
                 {% if s.is_spread %}<span class="editor-badge">разворот</span>{% endif %}
                 <img class="editor-thumb" src="{{ s.image.file.url }}" alt="">
             </div>

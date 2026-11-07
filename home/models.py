@@ -803,7 +803,7 @@ class TournamentPage(Page):
             heading="IYPT",
         ),
         InlinePanel("problems", label="Задания"),
-        InlinePanel("problem_scans", label="Сканы заданий (страница / разворот)"),
+        InlinePanel("problem_scans", label="Сканы заданий (сезон / финал)"),
         InlinePanel("ranking", label="Итоговая таблица"),
         MultiFieldPanel(
             [
@@ -857,8 +857,19 @@ class TournamentPage(Page):
     def get_context(self, request):
         context = super().get_context(request)
         context["problems"] = self.problems.all().order_by("number")
-        context["problem_scans"] = list(self.problem_scans.all())
+        all_scans = list(self.problem_scans.all())
+        context["problem_scans"] = [
+            s for s in all_scans if s.kind == TournamentProblemScan.KIND_SEASON
+        ]
+        context["final_problem_scans"] = [
+            s for s in all_scans if s.kind == TournamentProblemScan.KIND_FINAL
+        ]
         context["has_problem_scans"] = bool(context["problem_scans"])
+        context["has_final_problem_scans"] = bool(context["final_problem_scans"])
+        context["has_season_problems"] = bool(context["problems"]) or context["has_problem_scans"]
+        context["has_any_problems"] = (
+            context["has_season_problems"] or context["has_final_problem_scans"]
+        )
         rows = list(self.ranking.all())
         by_kind = {}
         for row in rows:
@@ -918,7 +929,20 @@ class TournamentProblem(Orderable):
 class TournamentProblemScan(Orderable):
     """Скан страницы или разворота условий (без чужих турниров на одном кадре)."""
 
+    KIND_SEASON = "season"
+    KIND_FINAL = "final"
+    KIND_CHOICES = [
+        (KIND_SEASON, "Задания сезона"),
+        (KIND_FINAL, "Задания финала"),
+    ]
+
     page = ParentalKey(TournamentPage, on_delete=models.CASCADE, related_name="problem_scans")
+    kind = models.CharField(
+        "Раздел",
+        max_length=16,
+        choices=KIND_CHOICES,
+        default=KIND_SEASON,
+    )
     image = models.ForeignKey(
         "wagtailimages.Image",
         on_delete=models.CASCADE,
@@ -936,6 +960,7 @@ class TournamentProblemScan(Orderable):
     caption = models.CharField("Подпись", max_length=200, blank=True)
 
     panels = [
+        FieldPanel("kind"),
         FieldPanel("image"),
         FieldPanel("image_right"),
         FieldPanel("caption"),

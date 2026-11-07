@@ -14,10 +14,10 @@
     <p class="when">{% if page.date_start and page.date_end %}{{ page.date_start|date:"d.m.Y" }} — {{ page.date_end|date:"d.m.Y" }}{% elif page.date_start %}{{ page.date_start|date:"d.m.Y" }}{% endif %}{% if page.city %}{% if page.date_start %}, {% endif %}{{ page.city }}{% endif %}</p>
     {% endif %}
 
-    {% if problems or has_problem_scans or has_result_tables or has_iypt or has_photos or report_links or news_links %}
+    {% if has_any_problems or has_result_tables or has_iypt or has_photos or report_links or news_links %}
     <div class="season-switch" data-season-tabs>
         <div class="season-tabs" role="tablist" aria-label="Разделы сезона">
-            {% if problems or has_problem_scans %}
+            {% if has_any_problems %}
             <button type="button" class="season-tab" role="tab" id="tab-zadachi" aria-controls="panel-zadachi" aria-selected="true" data-tab="zadachi">
                 <span class="radio" aria-hidden="true"></span>
                 Задания
@@ -49,25 +49,42 @@
             {% endif %}
         </div>
 
-        {% if problems or has_problem_scans %}
+        {% if has_any_problems %}
         <section class="season-panel" role="tabpanel" id="panel-zadachi" aria-labelledby="tab-zadachi">
-            {% if has_problem_scans %}
-            <div class="problem-scans">
-                {% for scan in problem_scans %}
-                <figure class="problem-scan{% if scan.is_spread %} problem-scan--spread{% endif %}">
-                    <div class="problem-scan__pages">
-                        {% image scan.image width-1400 as scan_left %}
-                        <img src="{{ scan_left.url }}" alt="{% if scan.caption %}{{ scan.caption }}{% else %}Скан условий{% endif %}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
-                        {% if scan.image_right %}
-                        {% image scan.image_right width-1400 as scan_right %}
-                        <img src="{{ scan_right.url }}" alt="" loading="lazy">
-                        {% endif %}
-                    </div>
-                    {% if scan.caption %}<figcaption>{{ scan.caption }}</figcaption>{% endif %}
-                </figure>
-                {% endfor %}
+            {% if has_season_problems and has_final_problem_scans %}
+            <div class="season-switch season-switch--nested" data-season-tabs>
+                <div class="season-tabs" role="tablist" aria-label="Разделы заданий">
+                    <button type="button" class="season-tab" role="tab" id="tab-zadachi-season" aria-controls="panel-zadachi-season" aria-selected="true" data-tab="zadachi-season">
+                        <span class="radio" aria-hidden="true"></span>
+                        Задания
+                    </button>
+                    <button type="button" class="season-tab" role="tab" id="tab-zadachi-final" aria-controls="panel-zadachi-final" aria-selected="false" data-tab="zadachi-final" tabindex="-1">
+                        <span class="radio" aria-hidden="true"></span>
+                        Задания финала
+                    </button>
+                </div>
+                <div class="season-panel" role="tabpanel" id="panel-zadachi-season" aria-labelledby="tab-zadachi-season">
+                    {% include "home/includes/problem_scans.html" with scans=problem_scans %}
+                    {% if problems %}
+                    <ol class="problems">
+                        {% for item in problems %}
+                        <li>
+                            <h2>{{ item.number }}. {{ item.title }}</h2>
+                            <p>{{ item.statement|linebreaksbr }}</p>
+                        </li>
+                        {% endfor %}
+                    </ol>
+                    {% endif %}
+                </div>
+                <div class="season-panel" role="tabpanel" id="panel-zadachi-final" aria-labelledby="tab-zadachi-final" hidden>
+                    {% include "home/includes/problem_scans.html" with scans=final_problem_scans %}
+                </div>
             </div>
-            {% endif %}
+            {% elif has_final_problem_scans and not has_season_problems %}
+            <h2 class="problems-subhead">Задания финала</h2>
+            {% include "home/includes/problem_scans.html" with scans=final_problem_scans %}
+            {% else %}
+            {% include "home/includes/problem_scans.html" with scans=problem_scans %}
             {% if problems %}
             <ol class="problems">
                 {% for item in problems %}
@@ -77,6 +94,7 @@
                 </li>
                 {% endfor %}
             </ol>
+            {% endif %}
             {% endif %}
         </section>
         {% endif %}

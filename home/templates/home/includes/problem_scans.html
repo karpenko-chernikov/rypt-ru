@@ -1,0 +1,18 @@
+{% load wagtailimages_tags %}
+{% if scans %}
+<div class="problem-scans">
+    {% for scan in scans %}
+    <figure class="problem-scan{% if scan.is_spread %} problem-scan--spread{% endif %}">
+        <div class="problem-scan__pages">
+            {% image scan.image width-1400 as scan_left %}
+            <img src="{{ scan_left.url }}" alt="{% if scan.caption %}{{ scan.caption }}{% else %}Скан условий{% endif %}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+            {% if scan.image_right %}
+            {% image scan.image_right width-1400 as scan_right %}
+            <img src="{{ scan_right.url }}" alt="" loading="lazy">
+            {% endif %}
+        </div>
+        {% if scan.caption %}<figcaption>{{ scan.caption }}</figcaption>{% endif %}
+    </figure>
+    {% endfor %}
+</div>
+{% endif %}

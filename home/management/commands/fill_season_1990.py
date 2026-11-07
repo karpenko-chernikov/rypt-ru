@@ -1,21 +1,26 @@
-"""Заполняет сезон 1990: результаты физбоев (без финала) + IYPT.
+"""Заполняет сезон 1990: результаты физбоев (без финала) + IYPT + скан заданий финала.
 
-Источник скана: архив фонда, папка 29, лист 50.
+Источник результатов: архив фонда, папка 29, лист 50.
 Место: МЦ «Олимпиец», Москва.
 Первая цифра в колонках I–IV — место в бою (регламент того времени).
 Пробел между Новгородом и Барнаулом на скане — смысл неизвестен.
+Задания финала — отдельный скан (рисунки остаются на скане).
 """
 
 from pathlib import Path
 
+from django.core.files.images import ImageFile
 from django.core.management.base import BaseCommand
+from wagtail.images.models import Image
 
-from home.models import TournamentPage, TournamentResultRow
+from home.models import TournamentPage, TournamentProblemScan, TournamentResultRow
 
 YEAR = 1990
 CITY = "Москва, МЦ «Олимпиец»"
 MORE_LABEL = "Оригинал (архив фонда, папка 29, лист 50)"
 MORE_URL = "/static/docs/results/1990-rezultaty-fizboev.jpg"
+FINAL_PROBLEMS_STATIC = Path("rypt/static/docs/problems/1990-zadaniya-finala.jpg")
+FINAL_SCAN_TITLE = "ТЮФ 1990 задания финала"
 IYPT_MORE_URL = "https://archive.iypt.org/factsheets/"
 IYPT_MORE_LABEL = "Оригинал"
 
@@ -239,8 +244,37 @@ def add_rows(page, kind, rows, order):
     return order
 
 
+def ensure_image(path: Path, title: str) -> Image:
+    existing = Image.objects.filter(title=title).first()
+    if existing:
+        return existing
+    with path.open("rb") as fh:
+        image = Image(title=title, file=ImageFile(fh, name=path.name))
+        image.save()
+    return image
+
+
+def attach_final_problems_scan(page) -> bool:
+    root = Path(__file__).resolve().parents[3]
+    path = root / FINAL_PROBLEMS_STATIC
+    if not path.exists():
+        return False
+    page.problem_scans.filter(kind=TournamentProblemScan.KIND_FINAL).delete()
+    Image.objects.filter(title=FINAL_SCAN_TITLE).delete()
+    image = ensure_image(path, FINAL_SCAN_TITLE)
+    TournamentProblemScan.objects.create(
+        page=page,
+        kind=TournamentProblemScan.KIND_FINAL,
+        image=image,
+        caption="Задания финального тура",
+        sort_order=0,
+    )
+    image.get_rendition("width-1400")
+    return True
+
+
 class Command(BaseCommand):
-    help = "Заполняет сезон 1990: физбои без финала, IYPT, скан оригинала."
+    help = "Заполняет сезон 1990: физбои без финала, IYPT, скан заданий финала."
 
     def handle(self, *args, **options):
         page = TournamentPage.objects.filter(year=YEAR).first()
@@ -248,7 +282,8 @@ class Command(BaseCommand):
             self.stderr.write("Страницы 1990 нет.")
             return
 
-        scan = Path(__file__).resolve().parents[3] / "rypt/static/docs/results/1990-rezultaty-fizboev.jpg"
+        root = Path(__file__).resolve().parents[3]
+        scan = root / "rypt/static/docs/results/1990-rezultaty-fizboev.jpg"
         if not scan.exists():
             self.stderr.write(f"Нет скана: {scan}")
             return
@@ -266,12 +301,15 @@ class Command(BaseCommand):
         order = add_rows(page, TournamentResultRow.KIND_RANKING, ranking_rows(), order)
         order = add_rows(page, TournamentResultRow.KIND_IYPT_RANKING, IYPT_RANKING, order)
         add_rows(page, TournamentResultRow.KIND_IYPT_FINAL, IYPT_FINAL, order)
+
+        final_ok = attach_final_problems_scan(page)
         page.save_revision().publish()
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"1990: {CITY}, рейтинг {len(FIGHTS)}, без финала, "
                 f"IYPT {len(IYPT_RANKING)}/{len(IYPT_FINAL)}, "
+                f"задания финала={'да' if final_ok else 'нет'}, "
                 f"оригинал → {MORE_URL}"
             )
         )

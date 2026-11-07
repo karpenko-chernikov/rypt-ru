@@ -511,8 +511,10 @@ def scan_add(request, year):
                 f"{page.display_title} скан R",
             )
         order = page.problem_scans.count()
+        kind = form.cleaned_data.get("kind") or TournamentProblemScan.KIND_SEASON
         TournamentProblemScan.objects.create(
             page=page,
+            kind=kind,
             image=left,
             image_right=right,
             caption=form.cleaned_data.get("caption") or "",
@@ -522,7 +524,11 @@ def scan_add(request, year):
         log_change(
             user=request.user,
             action=EditorChangeLog.ACTION_CREATE,
-            summary="Добавлен скан заданий",
+            summary=(
+                "Добавлен скан заданий финала"
+                if kind == TournamentProblemScan.KIND_FINAL
+                else "Добавлен скан заданий"
+            ),
             object_id=page.pk,
             object_label=page.display_title,
             tab=EditorChangeLog.TAB_ZADACHI,

@@ -294,11 +294,11 @@
         if (!roots.length) return;
 
         roots.forEach(function (root) {
-            var tabs = Array.prototype.slice.call(root.querySelectorAll(":scope > .season-tabs [role=tab], :scope .season-tabs [role=tab]"));
-            var panels = Array.prototype.slice.call(root.querySelectorAll(":scope > [role=tabpanel], :scope > .documents-panel, :scope [role=tabpanel]"));
-            if (!panels.length) {
-                panels = Array.prototype.slice.call(root.querySelectorAll(".season-panel"));
-            }
+            // Только прямые вкладки/панели этого корня — вложенные data-season-tabs живут отдельно.
+            var tabs = Array.prototype.slice.call(root.querySelectorAll(":scope > .season-tabs [role=tab]"));
+            var panels = Array.prototype.slice.call(
+                root.querySelectorAll(":scope > [role=tabpanel], :scope > .documents-panel, :scope > .season-panel")
+            );
             if (!tabs.length) return;
             var isDocuments = root.hasAttribute("data-documents-tabs");
 
