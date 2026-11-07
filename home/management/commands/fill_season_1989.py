@@ -21,11 +21,7 @@ CITY = "Москва, МЦ «Олимпиец»"
 START = date(1989, 3, 24)
 END = date(1989, 4, 3)
 MORE_LABEL = "Оригинал: «Квант» № 10, 1989, стр. 42"
-MORE_URL = (
-    "/static/docs/results/1989-kvant.jpg\n"
-    "https://web.archive.org/web/20050109201248/"
-    "http://kvant.mccme.ru/1989/10/ob_itogah_tyuf_1988-89_goda.htm"
-)
+MORE_URL = "/static/docs/results/1989-kvant.jpg"
 IYPT_MORE_URL = "https://archive.iypt.org/factsheets/"
 IYPT_MORE_LABEL = "Оригинал"
 
