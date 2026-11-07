@@ -1,7 +1,8 @@
-"""Заполняет сезон 1997 по протоколу Оргкомитета и Жюри.
+"""Заполняет сезон 1997 по протоколу Оргкомитета и Жюри + IYPT.
 
 Источник: архив фонда, папка 29, листы 409–410.
 Турнир: Екатеринбург, СУНЦ УрГУ, 14–20 марта 1997.
+На X IYPT (Чехия) ездили три российские команды.
 """
 
 from datetime import date
@@ -20,6 +21,10 @@ MORE_URL = (
     "/static/docs/results/1997-protokol-1.jpg\n"
     "/static/docs/results/1997-protokol-2.jpg"
 )
+IYPT_MORE_URL = "https://archive.iypt.org/factsheets/"
+IYPT_MORE_LABEL = "Оригинал"
+
+IYPT_TEAM = """На X IYPT (1–7 июня 1997, Хеб, Чехия) выступали три российские команды: Москва (СУНЦ МГУ), Екатеринбург и Урал."""
 
 # Место — как на протоколе («Место 1» … «Место 4»). Баллов/дипломов на скане нет.
 RANKING = [
@@ -70,6 +75,9 @@ class Command(BaseCommand):
         page.date_end = END
         page.results_more_url = MORE_URL
         page.results_more_label = MORE_LABEL
+        page.iypt_team = IYPT_TEAM
+        page.iypt_more_url = IYPT_MORE_URL
+        page.iypt_more_label = IYPT_MORE_LABEL
         page.save()
 
         page.ranking.all().delete()
@@ -79,6 +87,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"1997: {CITY}, {START} — {END}, рейтинг {len(RANKING)}, "
-                f"оригинал → {MORE_URL} (+ лист 2)"
+                f"IYPT текст, оригинал → два листа"
             )
         )
