@@ -95,6 +95,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"1989: {CITY}, {START} — {END}, рейтинг {len(RANKING)}, "
-                f"IYPT текст, оригинал → скан + Wayback"
+                f"IYPT текст, оригинал → {MORE_URL}"
             )
         )
