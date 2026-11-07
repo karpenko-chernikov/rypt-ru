@@ -106,7 +106,7 @@
                 {% if ranking %}
                 <div>
                     <h2>Общий рейтинг</h2>
-                    {% include "home/includes/ranking_table.html" with rows=ranking has_city=ranking_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=ranking has_city=ranking_has_city points_label=ranking_points_label %}
                 </div>
                 {% endif %}
                 {% if league_a or league_b %}
@@ -114,11 +114,11 @@
                     <h2>Рейтинг по лигам</h2>
                     {% if league_a %}
                     <h3>Высшая лига</h3>
-                    {% include "home/includes/ranking_table.html" with rows=league_a has_city=league_a_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=league_a has_city=league_a_has_city points_label=league_a_points_label %}
                     {% endif %}
                     {% if league_b %}
                     <h3>Первая лига</h3>
-                    {% include "home/includes/ranking_table.html" with rows=league_b has_city=league_b_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=league_b has_city=league_b_has_city points_label=league_b_points_label %}
                     {% endif %}
                 </div>
                 {% endif %}
@@ -127,11 +127,11 @@
                     <h2>Финалы</h2>
                     {% if finals %}
                     <h3>{% if finals_b %}Финал высшей лиги{% else %}Финал{% endif %}</h3>
-                    {% include "home/includes/ranking_table.html" with rows=finals has_city=finals_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=finals has_city=finals_has_city points_label=finals_points_label %}
                     {% endif %}
                     {% if finals_b %}
                     <h3>Финал первой лиги</h3>
-                    {% include "home/includes/ranking_table.html" with rows=finals_b has_city=finals_b_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=finals_b has_city=finals_b_has_city points_label=finals_b_points_label %}
                     {% endif %}
                 </div>
                 {% endif %}
@@ -141,13 +141,13 @@
                 {% if finals %}
                 <div>
                     <h2>Финал</h2>
-                    {% include "home/includes/ranking_table.html" with rows=finals has_city=finals_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=finals has_city=finals_has_city points_label=finals_points_label %}
                 </div>
                 {% endif %}
                 {% if ranking %}
                 <div>
                     <h2>Итог отборочных боёв</h2>
-                    {% include "home/includes/ranking_table.html" with rows=ranking has_city=ranking_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=ranking has_city=ranking_has_city points_label=ranking_points_label %}
                 </div>
                 {% endif %}
             </div>
@@ -179,13 +179,13 @@
                 {% if iypt_ranking %}
                 <div>
                     <h2>Рейтинг команд</h2>
-                    {% include "home/includes/ranking_table.html" with rows=iypt_ranking has_city=iypt_ranking_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=iypt_ranking has_city=iypt_ranking_has_city points_label=iypt_ranking_points_label %}
                 </div>
                 {% endif %}
                 {% if iypt_final %}
                 <div>
                     <h2>Финал</h2>
-                    {% include "home/includes/ranking_table.html" with rows=iypt_final has_city=iypt_final_has_city %}
+                    {% include "home/includes/ranking_table.html" with rows=iypt_final has_city=iypt_final_has_city points_label=iypt_final_points_label %}
                 </div>
                 {% endif %}
             </div>

@@ -57,6 +57,14 @@ def ranking_score(row):
         return float("-inf")
 
 
+def ranking_points_label(rows):
+    """Заголовок колонки баллов: «Диплом», если в таблице только степени/участники."""
+    texts = [str(row.points or "").strip().lower() for row in rows if str(row.points or "").strip()]
+    if texts and all(("степен" in t) or ("участник" in t) for t in texts):
+        return "Диплом"
+    return "Сумма"
+
+
 def vk_sized(url, cs):
     if not url:
         return ""
@@ -909,6 +917,7 @@ class TournamentPage(Page):
             "iypt_final",
         ):
             context[f"{key}_has_city"] = any(row.city for row in context[key])
+            context[f"{key}_points_label"] = ranking_points_label(context[key])
         context["photos"] = list(self.photos.all())
         context["album_urls"] = self.album_urls()
         context["has_photos"] = bool(context["album_urls"]) or bool(context["photos"])
