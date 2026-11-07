@@ -21,6 +21,7 @@ MORE_LABEL = "Оригинал (архив фонда, папка 29, лист 5
 MORE_URL = "/static/docs/results/1990-rezultaty-fizboev.jpg"
 FINAL_PROBLEMS_STATIC = Path("rypt/static/docs/problems/1990-zadaniya-finala.jpg")
 FINAL_SCAN_TITLE = "ТЮФ 1990 задания финала"
+FINAL_SCAN_CAPTION = "Первоисточник: архив фонда, папка 29, лист 252"
 IYPT_MORE_URL = "https://archive.iypt.org/factsheets/"
 IYPT_MORE_LABEL = "Оригинал"
 
@@ -266,7 +267,7 @@ def attach_final_problems_scan(page) -> bool:
         page=page,
         kind=TournamentProblemScan.KIND_FINAL,
         image=image,
-        caption="Задания финального тура",
+        caption=FINAL_SCAN_CAPTION,
         sort_order=0,
     )
     image.get_rendition("width-1400")
