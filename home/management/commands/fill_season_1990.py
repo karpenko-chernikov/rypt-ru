@@ -19,7 +19,7 @@ MORE_URL = "/static/docs/results/1990-rezultaty-fizboev.jpg"
 IYPT_MORE_URL = "https://archive.iypt.org/factsheets/"
 IYPT_MORE_LABEL = "Оригинал"
 
-IYPT_TEAM = """На III IYPT (7–14 июня 1990) выступали команды МФТИ и Риги в изменённых составах — схема «сборной» в духе 2016 года сюда плохо ложится.
+IYPT_TEAM = """На III IYPT (7–14 июня 1990) выступали команды МФТИ и Риги в изменённых составах.
 
 Обе команды вышли в финал 12.06.1990."""
 
@@ -217,11 +217,10 @@ FIGHTS = [
 
 
 def ranking_rows():
-    """Строки сайта: порядок как на скане; в баллах — «Σмест / сумма»."""
+    """Строки сайта: порядок как на скане; в баллах — сумма очков."""
     rows = []
     for i, row in enumerate(FIGHTS, start=1):
-        points = f"{row['place_sum']} / {row['score']}"
-        rows.append((str(i), row["team"], points))
+        rows.append((str(i), row["team"], row["score"]))
     return rows
 
 
