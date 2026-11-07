@@ -1,7 +1,7 @@
-"""Заполняет сезон 1996: результаты отборочных боёв.
+"""Заполняет сезон 1996: результаты отборочных боёв + IYPT.
 
-Источник: скан «XVIII ВСЕРОССИЙСКИЙ ТУРНИР… НОВГОРОД 1996».
-Даты / архивная полка / IYPT — допишем, когда будет инфа.
+Источник скана: архив фонда, папка 29, лист 493.
+Турнир: Новгород. На IX IYPT (Грузия) поехали Новгород и СУНЦ МГУ.
 """
 
 from pathlib import Path
@@ -12,8 +12,14 @@ from home.models import TournamentPage, TournamentResultRow
 
 YEAR = 1996
 CITY = "Новгород"
-MORE_LABEL = "Оригинал"
+MORE_LABEL = "Оригинал (архив фонда, папка 29, лист 493)"
 MORE_URL = "/static/docs/results/1996-komandnoe-pervenstvo.jpg"
+IYPT_MORE_URL = "https://archive.iypt.org/factsheets/"
+IYPT_MORE_LABEL = "Оригинал"
+
+IYPT_TEAM = """На IX IYPT (29 июня — 5 июля 1996, Цхалтубо, Грузия) выступали две российские команды: Новгород и СУНЦ МГУ.
+
+Обе команды получили дипломы III степени."""
 
 # Место по скану; в баллах — сумма SP.
 RANKING = [
@@ -56,6 +62,9 @@ class Command(BaseCommand):
         page.city = CITY
         page.results_more_url = MORE_URL
         page.results_more_label = MORE_LABEL
+        page.iypt_team = IYPT_TEAM
+        page.iypt_more_url = IYPT_MORE_URL
+        page.iypt_more_label = IYPT_MORE_LABEL
         page.save()
 
         page.ranking.all().delete()
@@ -64,6 +73,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"1996: {CITY}, рейтинг {len(RANKING)}, оригинал → {MORE_URL}"
+                f"1996: {CITY}, рейтинг {len(RANKING)}, IYPT текст, "
+                f"оригинал → {MORE_URL}"
             )
         )
