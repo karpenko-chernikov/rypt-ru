@@ -1,0 +1,14 @@
+{% with links=page.results_more_links %}
+{% if links %}
+<p class="prose">
+    {% if links|length == 1 %}
+    <a href="{{ links.0 }}"{% if ".xls" in links.0|lower or ".pdf" in links.0|lower or links.0|slice:":7" == "/media/" %} download{% endif %} rel="noreferrer">{{ page.results_more_label|default:default_label|default:"Оригинал" }}</a>
+    {% else %}
+    {{ page.results_more_label|default:default_label|default:"Оригинал" }} —
+    {% for href in links %}
+    <a href="{{ href }}"{% if ".xls" in href|lower or ".pdf" in href|lower or href|slice:":7" == "/media/" %} download{% endif %} rel="noreferrer">лист {{ forloop.counter }}</a>{% if not forloop.last %} · {% endif %}
+    {% endfor %}
+    {% endif %}
+</p>
+{% endif %}
+{% endwith %}

@@ -153,11 +153,10 @@
             </div>
             {% endif %}
             {% if ranking or finals or league_a or league_b or finals_b %}
-                {% if page.results_more_url %}
-                <p class="prose"><a href="{{ page.results_more_url }}"{% if ".xls" in page.results_more_url|lower or ".pdf" in page.results_more_url|lower or page.results_more_url|slice:":7" == "/media/" %} download{% endif %} rel="noreferrer">{{ page.results_more_label|default:"Оригинал" }}</a></p>
-                {% endif %}
-            {% elif page.results_more_url %}
-            <p class="prose">Итоговой таблицы пока нет. Оригинал — <a href="{{ page.results_more_url }}"{% if ".xls" in page.results_more_url|lower or ".pdf" in page.results_more_url|lower or page.results_more_url|slice:":7" == "/media/" %} download{% endif %} rel="noreferrer">{{ page.results_more_label|default:"по ссылке" }}</a>.</p>
+                {% include "home/includes/results_more.html" %}
+            {% elif page.results_more_links %}
+            <p class="prose">Итоговой таблицы пока нет.</p>
+            {% include "home/includes/results_more.html" with default_label="по ссылке" %}
             {% endif %}
         </section>
         {% endif %}

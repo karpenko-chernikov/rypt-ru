@@ -16,7 +16,10 @@ CITY = "Екатеринбург, СУНЦ УрГУ"
 START = date(1997, 3, 14)
 END = date(1997, 3, 20)
 MORE_LABEL = "Оригинал (архив фонда, папка 29, листы 409–410)"
-MORE_URL = "/static/docs/results/1997-protokol-1.jpg"
+MORE_URL = (
+    "/static/docs/results/1997-protokol-1.jpg\n"
+    "/static/docs/results/1997-protokol-2.jpg"
+)
 
 # Место — как на протоколе («Место 1» … «Место 4»). Баллов/дипломов на скане нет.
 RANKING = [

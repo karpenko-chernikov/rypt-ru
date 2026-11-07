@@ -776,7 +776,7 @@ class TournamentPage(Page):
         "Подробные результаты, ссылка или файл",
         max_length=500,
         blank=True,
-        help_text="Внешняя ссылка (https://…) или путь к файлу (/media/…).",
+        help_text="Внешняя ссылка (https://…) или путь к файлу (/media/…). Несколько — с новой строки.",
     )
     results_more_label = models.CharField(
         "Подпись к ссылке на результаты",
@@ -851,6 +851,10 @@ class TournamentPage(Page):
 
     def album_urls(self):
         text = self.photo_album_url or ""
+        return [line.strip() for line in text.splitlines() if line.strip()]
+
+    def results_more_links(self):
+        text = self.results_more_url or ""
         return [line.strip() for line in text.splitlines() if line.strip()]
 
     def album_ref(self):
