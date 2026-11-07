@@ -1,7 +1,7 @@
 """Заполняет сезон 1998 по протоколу XX Всероссийского ТЮФ.
 
-Источник: архив фонда, папка 33, лист 294.
-Турнир: Санкт-Петербург, АГ СПбГУ, 21–25 марта 1998.
+Источник: архив фонда, папка 33, листы 294–296.
+Турнир: Санкт-Петербург, АГ СПбГУ (отбор), физфак СПбГУ (финал), 21–25 марта 1998.
 """
 
 from datetime import date
@@ -15,8 +15,19 @@ YEAR = 1998
 CITY = "Санкт-Петербург, АГ СПбГУ"
 START = date(1998, 3, 21)
 END = date(1998, 3, 25)
-MORE_LABEL = "Оригинал (архив фонда, папка 33, лист 294)"
-MORE_URL = "/static/docs/results/1998-protokol.jpg"
+MORE_LABEL = "Оригинал (архив фонда, папка 33, листы 294–296)"
+MORE_URL = (
+    "/static/docs/results/1998-protokol.jpg\n"
+    "/static/docs/results/1998-programma-1.jpg\n"
+    "/static/docs/results/1998-programma-2.jpg\n"
+    "/static/docs/results/1998-otborochnye.jpg"
+)
+SCANS = (
+    "1998-protokol.jpg",
+    "1998-programma-1.jpg",
+    "1998-programma-2.jpg",
+    "1998-otborochnye.jpg",
+)
 
 # Общий зачёт / итоговый рейтинг (колонка на протоколе); баллы финала — отдельно.
 RANKING = [
@@ -58,7 +69,7 @@ def add_rows(page, kind, rows, order):
 
 
 class Command(BaseCommand):
-    help = "Заполняет сезон 1998: общий зачёт, финал и скан оригинала."
+    help = "Заполняет сезон 1998: общий зачёт, финал и сканы оригинала."
 
     def handle(self, *args, **options):
         page = TournamentPage.objects.filter(year=YEAR).first()
@@ -66,10 +77,12 @@ class Command(BaseCommand):
             self.stderr.write("Страницы 1998 нет.")
             return
 
-        scan = Path(__file__).resolve().parents[3] / "rypt/static/docs/results/1998-protokol.jpg"
-        if not scan.exists():
-            self.stderr.write(f"Нет скана: {scan}")
-            return
+        root = Path(__file__).resolve().parents[3]
+        for name in SCANS:
+            path = root / "rypt/static/docs/results" / name
+            if not path.exists():
+                self.stderr.write(f"Нет скана: {path}")
+                return
 
         page.city = CITY
         page.date_start = START
@@ -87,6 +100,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"1998: {CITY}, {START} — {END}, рейтинг {len(RANKING)}, "
-                f"финал {len(FINAL)}, оригинал → {MORE_URL}"
+                f"финал {len(FINAL)}, оригинал → {len(SCANS)} листа"
             )
         )
