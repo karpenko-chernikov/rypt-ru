@@ -60,7 +60,7 @@ def ranking_score(row):
 def ranking_points_label(rows):
     """Заголовок колонки баллов: «Диплом», если в таблице только степени/участники."""
     texts = [str(row.points or "").strip().lower() for row in rows if str(row.points or "").strip()]
-    if texts and all(("степен" in t) or ("участник" in t) for t in texts):
+    if texts and all(("степен" in t) or ("участник" in t) or ("диплом" in t) for t in texts):
         return "Диплом"
     return "Сумма"
 
