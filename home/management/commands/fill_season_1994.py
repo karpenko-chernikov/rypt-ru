@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand
 from home.models import TournamentPage, TournamentResultRow
 
 YEAR = 1994
+CITY = "Москва, СУНЦ МГУ"
 MORE_LABEL = "Оригинал"
 MORE_URL = "/static/docs/results/1994-protokol.jpg"
 
@@ -56,6 +57,7 @@ class Command(BaseCommand):
             self.stderr.write(f"Нет скана: {scan}")
             return
 
+        page.city = CITY
         page.results_more_url = MORE_URL
         page.results_more_label = MORE_LABEL
         page.save()
@@ -66,6 +68,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"1994: рейтинг {len(RANKING)} (по местам), оригинал → {MORE_URL}"
+                f"1994: {CITY}, рейтинг {len(RANKING)} (по местам), оригинал → {MORE_URL}"
             )
         )
