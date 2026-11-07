@@ -228,11 +228,11 @@ class RegionalTournamentForm(forms.Form):
     results_url = forms.CharField(label="Ссылка на оригинал результатов", required=False, max_length=500)
     results_label = forms.CharField(label="Подпись к ссылке", required=False, max_length=160)
     season_problem_ids = forms.MultipleChoiceField(
-        label="Задачи текущего сезона",
+        label="Задания текущего сезона",
         required=False,
         widget=forms.CheckboxSelectMultiple,
         choices=(),
-        help_text="Отметьте задачи сезона, которые играют на этом региональном турнире.",
+        help_text="Отметьте задания сезона, которые играют на этом региональном турнире.",
     )
     photos_text = forms.CharField(
         label="Фото (по одной внешней ссылке на строку)",
@@ -246,7 +246,7 @@ class RegionalTournamentForm(forms.Form):
         self.fields["season_problem_ids"].choices = season_problem_choices or []
         if not season_problem_choices:
             self.fields["season_problem_ids"].help_text = (
-                "Нет задач текущего сезона — сначала заведите их в разделе «Сезоны»."
+                "Нет заданий текущего сезона — сначала заведите их в разделе «Сезоны»."
             )
 
     def clean_results_url(self):
@@ -272,6 +272,6 @@ class RegionalTournamentForm(forms.Form):
         for value in raw:
             value = str(value)
             if value not in allowed:
-                raise ValidationError("Выбрана задача не из текущего сезона.")
+                raise ValidationError("Выбрано задание не из текущего сезона.")
             ids.append(int(value))
         return ids

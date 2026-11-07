@@ -10,7 +10,7 @@ DATA = Path(__file__).with_name("season_problems.json")
 
 
 class Command(BaseCommand):
-    help = "Создаёт страницы сезонов и заливает списки задач."
+    help = "Создаёт страницы сезонов и заливает списки заданий."
 
     def handle(self, *args, **options):
         home = HomePage.objects.first()
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         for year in years:
             problems = payload.get(str(year), [])
             if not problems:
-                self.stderr.write(f"{year}: задачи не нашлись.")
+                self.stderr.write(f"{year}: задания не нашлись.")
                 continue
             page = TournamentPage.objects.child_of(index).filter(slug=str(year)).first()
             roman = year_to_roman(year)
@@ -53,6 +53,6 @@ class Command(BaseCommand):
                     statement=item["statement"],
                     sort_order=item["number"] - 1,
                 )
-            self.stdout.write(f"{year}: {len(problems)} задач.")
+            self.stdout.write(f"{year}: {len(problems)} заданий.")
 
         self.stdout.write(self.style.SUCCESS("Сезоны обновлены."))

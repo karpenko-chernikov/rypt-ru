@@ -36,7 +36,7 @@ def ensure_image(path: Path, title: str) -> Image:
 
 
 class Command(BaseCommand):
-    help = "Сезоны 1979–1987: страницы + сканы задач (разворот или страница)."
+    help = "Сезоны 1979–1987: страницы + сканы заданий (разворот или страница)."
 
     def handle(self, *args, **options):
         if not MAP.exists():

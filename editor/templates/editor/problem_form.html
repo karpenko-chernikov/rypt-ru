@@ -1,7 +1,7 @@
 {% extends "editor/base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<p class="editor-back"><a href="{% url 'editor:season_problems' page.year %}">← Задачи</a></p>
+<p class="editor-back"><a href="{% url 'editor:season_problems' page.year %}">← Задания</a></p>
 <h1 class="editor-h1">{{ title }}</h1>
 <form method="post" class="editor-form">
     {% csrf_token %}

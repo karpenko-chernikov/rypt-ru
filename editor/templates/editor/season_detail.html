@@ -7,7 +7,7 @@
 
 <nav class="editor-tabs">
     <a href="{% url 'editor:season_meta' page.year %}">Шапка</a>
-    <a href="{% url 'editor:season_problems' page.year %}">Задачи{% if problems_count or scans_count %} ({{ problems_count }}/{{ scans_count }}){% endif %}</a>
+    <a href="{% url 'editor:season_problems' page.year %}">Задания{% if problems_count or scans_count %} ({{ problems_count }}/{{ scans_count }}){% endif %}</a>
     <a href="{% url 'editor:season_results' page.year %}">Результаты{% if results_count %} ({{ results_count }}){% endif %}</a>
     <a href="{% url 'editor:season_iypt' page.year %}">IYPT</a>
     <a href="{% url 'editor:season_photos' page.year %}">Фото{% if photos_count or has_albums %} ·{% endif %}</a>
@@ -31,7 +31,7 @@
 
 <ul class="editor-list">
     <li><a href="{% url 'editor:season_meta' page.year %}">Шапка</a><span>{% if page.city %}{{ page.city }}{% else %}город не задан{% endif %}</span></li>
-    <li><a href="{% url 'editor:season_problems' page.year %}">Задачи и сканы</a><span>{{ problems_count }} задач, {{ scans_count }} сканов</span></li>
+    <li><a href="{% url 'editor:season_problems' page.year %}">Задания и сканы</a><span>{{ problems_count }} заданий, {{ scans_count }} сканов</span></li>
     <li><a href="{% url 'editor:season_results' page.year %}">Результаты</a><span>{% if results_count %}{{ results_count }} строк{% else %}нет — добавить{% endif %}</span></li>
     <li><a href="{% url 'editor:season_iypt' page.year %}">IYPT</a><span>{% if has_iypt_text or iypt_rows %}заполнено{% else %}пусто{% endif %}</span></li>
     <li><a href="{% url 'editor:season_photos' page.year %}">Фото</a><span>{{ photos_count }} файлов</span></li>

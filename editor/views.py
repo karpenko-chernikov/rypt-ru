@@ -394,7 +394,7 @@ def season_make_current(request, year):
     return redirect("editor:dashboard")
 
 
-# ----- Задачи -----
+# ----- Задания -----
 
 
 @staff_required
@@ -430,15 +430,15 @@ def problem_add(request, year):
         log_change(
             user=request.user,
             action=EditorChangeLog.ACTION_CREATE,
-            summary=f"Задача {form.cleaned_data['number']}. {form.cleaned_data['title']}",
+            summary=f"Задание {form.cleaned_data['number']}. {form.cleaned_data['title']}",
             object_id=page.pk,
             object_label=page.display_title,
             tab=EditorChangeLog.TAB_ZADACHI,
             payload=form.cleaned_data,
         )
-        messages.success(request, "Задача добавлена.")
+        messages.success(request, "Задание добавлено.")
         return redirect("editor:season_problems", year=year)
-    return render(request, "editor/problem_form.html", {"page": page, "form": form, "title": "Новая задача"})
+    return render(request, "editor/problem_form.html", {"page": page, "form": form, "title": "Новое задание"})
 
 
 @staff_required
@@ -460,15 +460,15 @@ def problem_edit(request, year, pk):
         log_change(
             user=request.user,
             action=EditorChangeLog.ACTION_UPDATE,
-            summary=f"Изменена задача {problem.number}",
+            summary=f"Изменено задание {problem.number}",
             object_id=page.pk,
             object_label=page.display_title,
             tab=EditorChangeLog.TAB_ZADACHI,
             payload=form.cleaned_data,
         )
-        messages.success(request, "Задача сохранена.")
+        messages.success(request, "Задание сохранено.")
         return redirect("editor:season_problems", year=year)
-    return render(request, "editor/problem_form.html", {"page": page, "form": form, "title": "Правка задачи"})
+    return render(request, "editor/problem_form.html", {"page": page, "form": form, "title": "Правка задания"})
 
 
 @staff_required
@@ -482,12 +482,12 @@ def problem_delete(request, year, pk):
     log_change(
         user=request.user,
         action=EditorChangeLog.ACTION_DELETE,
-        summary=f"Удалена задача {num}",
+        summary=f"Удалено задание {num}",
         object_id=page.pk,
         object_label=page.display_title,
         tab=EditorChangeLog.TAB_ZADACHI,
     )
-    messages.success(request, "Задача удалена.")
+    messages.success(request, "Задание удалено.")
     return redirect("editor:season_problems", year=year)
 
 
@@ -522,7 +522,7 @@ def scan_add(request, year):
         log_change(
             user=request.user,
             action=EditorChangeLog.ACTION_CREATE,
-            summary="Добавлен скан задач",
+            summary="Добавлен скан заданий",
             object_id=page.pk,
             object_label=page.display_title,
             tab=EditorChangeLog.TAB_ZADACHI,
@@ -542,7 +542,7 @@ def scan_delete(request, year, pk):
     log_change(
         user=request.user,
         action=EditorChangeLog.ACTION_DELETE,
-        summary="Удалён скан задач",
+        summary="Удалён скан заданий",
         object_id=page.pk,
         object_label=page.display_title,
         tab=EditorChangeLog.TAB_ZADACHI,

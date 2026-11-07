@@ -1,11 +1,11 @@
 {% extends "editor/base.html" %}
-{% block title %}Задачи · {{ page.display_title }}{% endblock %}
+{% block title %}Задания · {{ page.display_title }}{% endblock %}
 {% block content %}
 <p class="editor-back"><a href="{% url 'editor:season_detail' page.year %}">← {{ page.display_title }}</a></p>
-<h1 class="editor-h1">Задачи</h1>
+<h1 class="editor-h1">Задания</h1>
 
 <section class="editor-section">
-    <h2>Тексты задач</h2>
+    <h2>Тексты заданий</h2>
     {% if problems %}
     <table class="editor-table">
         <thead><tr><th>№</th><th>Название</th><th></th></tr></thead>
@@ -26,9 +26,9 @@
         </tbody>
     </table>
     {% else %}
-    <div class="editor-empty">Задач пока нет. Добавьте первую — на сайте появится вкладка «Задачи».</div>
+    <div class="editor-empty">Заданий пока нет. Добавьте первое — на сайте появится вкладка «Задания».</div>
     {% endif %}
-    <a class="editor-btn editor-btn-primary" href="{% url 'editor:problem_add' page.year %}">Добавить задачу</a>
+    <a class="editor-btn editor-btn-primary" href="{% url 'editor:problem_add' page.year %}">Добавить задание</a>
 </section>
 
 <section class="editor-section">

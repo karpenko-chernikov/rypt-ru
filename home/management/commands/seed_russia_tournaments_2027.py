@@ -13,7 +13,7 @@ from home.models import (
     current_tournament_season,
 )
 
-# Задачи: либо "all", либо список названий (как в TournamentProblem.title).
+# Задания: либо "all", либо список названий (как в TournamentProblem.title).
 TOURNAMENTS = [
     {
         "slug": "voronezh",
@@ -205,7 +205,7 @@ TOURNAMENTS = [
         "contacts": "",
         "info": (
             "<p>Калининградский турнир юных физиков, сезон 2026–2027. "
-            "Формат: 3 отборочных боя, 3 бесплатных отказа, третий бой — задача по выбору без вызова. "
+            "Формат: 3 отборочных боя, 3 бесплатных отказа, третий бой — задание по выбору без вызова. "
             '<a href="/static/docs/KalTYuF_2026-2027_Broshyura.pdf">Брошюра турнира (PDF)</a>.</p>'
         ),
         "results_url": "/static/docs/KalTYuF_2026-2027_Broshyura.pdf",
@@ -232,7 +232,7 @@ TOURNAMENTS = [
         "date_note": "24–27 декабря",
         "contacts": "Telegram: https://t.me/+qqS7D9uvuFFhMDUy",
         "info": (
-            "<p>Кубок Бобра — онлайн-турнир. Играются все 17 задач сезона. "
+            "<p>Кубок Бобра — онлайн-турнир. Играются все 17 заданий сезона. "
             '<a href="https://t.me/+qqS7D9uvuFFhMDUy">Telegram</a>.</p>'
         ),
         "results_url": "https://t.me/+qqS7D9uvuFFhMDUy",
@@ -260,7 +260,7 @@ TOURNAMENTS = [
             "Лицей №280. Регистрация до 21 ноября: "
             '<a href="https://forms.yandex.ru/cloud/6aee2e116d2d73b621e024e0">'
             "форма</a>.</p>"
-            "<p>Играемые задачи сезона 2026/2027 — "
+            "<p>Играемые задания сезона 2026/2027 — "
             '<a href="https://vk.ru/wall-174791006_140">в посте VK</a>.</p>'
             "<p>XXVI (12–14 декабря 2025) уже прошёл; итоги ниже.</p>"
         ),
@@ -273,7 +273,7 @@ TOURNAMENTS = [
             "3. Глаз Сокола (Лицей №280) — дипломы III степени\n"
             "4. Соколята (Лицей №280) — призёры без степени"
         ),
-        # Лист задач из поста wall-174791006_140 (сезон 2026/2027).
+        # Лист заданий из поста wall-174791006_140 (сезон 2026/2027).
         "problems": [
             "Придумай сам: Очки-обскуры",
             "Дисковый спектрометр",
@@ -350,7 +350,7 @@ TOURNAMENTS = [
             "(Москва, Ленинские горы, д. 1, стр. 2, м. Университет) "
             "на зимних студенческих каникулах — после 25 января. "
             '<a href="https://tournament.phys.msu.ru/">tournament.phys.msu.ru</a>, '
-            'задачи: <a href="https://tournament.phys.msu.ru/tasks/">tasks</a>.</p>'
+            'задания: <a href="https://tournament.phys.msu.ru/tasks/">tasks</a>.</p>'
         ),
         "results_url": "https://tournament.phys.msu.ru/",
         "results_label": "Сайт МосГорТЮФ",
@@ -405,7 +405,7 @@ TOURNAMENTS = [
         "contacts": "Михаил Владимирович Анищенко\nmacl.13@mail.ru",
         "info": (
             "<p>Крымский (республиканский) этап. "
-            "Задачи сезона — по официальному списку республиканского этапа.</p>"
+            "Задания сезона — по официальному списку республиканского этапа.</p>"
         ),
         "results_url": "",
         "results_label": "",

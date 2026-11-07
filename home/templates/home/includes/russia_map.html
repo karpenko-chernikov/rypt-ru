@@ -20,7 +20,7 @@
             <div class="russia-panel-empty" data-russia-empty>
                 <p class="russia-panel-kicker">Регион</p>
                 <h2 class="russia-panel-title">Выберите область на карте</h2>
-                <p class="russia-panel-lead">Справа появятся контакты, даты, задачи и результаты регионального турнира.</p>
+                <p class="russia-panel-lead">Справа появятся контакты, даты, задания и результаты регионального турнира.</p>
             </div>
             <div class="russia-panel-body is-hidden" data-russia-body>
                 <p class="russia-panel-kicker" data-f="region"></p>
@@ -36,7 +36,7 @@
                     <div class="prose russia-info" data-f="info"></div>
                 </div>
                 <div class="russia-block" data-block="problems">
-                    <h3>Задачи сезона</h3>
+                    <h3>Задания сезона</h3>
                     <p class="russia-problems-pending is-hidden" data-f="problems_pending"></p>
                     <ol class="russia-problems" data-f="problems"></ol>
                 </div>
@@ -59,15 +59,15 @@
     <script type="application/json" data-russia-names>{{ region_names_json|safe }}</script>
 
     {% if problems_matrix %}
-    <section class="russia-matrix" data-russia-matrix aria-label="Задачи сезона на региональных турнирах">
-        <h2 class="russia-matrix-title">Задачи сезона {{ problems_matrix.season_label }}</h2>
-        <p class="russia-matrix-lead">На каких турнирах играет каждая задача. Столбцы — по датам; открытый всероссийский — справа. Клик по столбцу открывает карточку.</p>
+    <section class="russia-matrix" data-russia-matrix aria-label="Задания сезона на региональных турнирах">
+        <h2 class="russia-matrix-title">Задания сезона {{ problems_matrix.season_label }}</h2>
+        <p class="russia-matrix-lead">На каких турнирах играет каждое задание. Столбцы — по датам; открытый всероссийский — справа. Клик по столбцу открывает карточку.</p>
         {% if problems_matrix.columns %}
         <div class="russia-matrix-scroll">
             <table class="russia-matrix-table">
                 <thead>
                     <tr>
-                        <th scope="col" class="russia-matrix-corner">Задача</th>
+                        <th scope="col" class="russia-matrix-corner">Задание</th>
                         {% for col in problems_matrix.columns %}
                         <th scope="col"{% if col.is_national %} class="russia-matrix-national"{% endif %}>
                             <button
@@ -100,7 +100,7 @@
                 </tbody>
             </table>
         </div>
-        <p class="russia-matrix-legend"><span class="russia-matrix-swatch" aria-hidden="true"></span> задача играет на турнире</p>
+        <p class="russia-matrix-legend"><span class="russia-matrix-swatch" aria-hidden="true"></span> задание играет на турнире</p>
         {% else %}
         <p class="russia-matrix-empty">Региональные турниры ещё не отмечены на карте — столбцы появятся автоматически.</p>
         {% endif %}

@@ -158,12 +158,12 @@ def open_all_russia_payload(current=None):
         "contacts": "",
         "info_html": (
             "<p>Открытый всероссийский турнир юных физиков — финал сезона. "
-            "Играются все задачи списка.</p>"
+            "Играются все задания списка.</p>"
         ),
         "problems": problems,
         "problems_pending": bool(current) and len(problems) == 0,
         "problems_pending_text": (
-            f"Задачи на сезон «{season_label}» ещё не опубликованы."
+            f"Задания на сезон «{season_label}» ещё не опубликованы."
             if current
             else "Текущий сезон не задан."
         ),
@@ -197,7 +197,7 @@ def matrix_column_when(city: str, when: str) -> str:
 
 
 def build_russia_problems_matrix(russia_page):
-    """Матрица задач текущего сезона × турниры (регионы по датам, всероссийский — последний)."""
+    """Матрица заданий текущего сезона × турниры (регионы по датам, всероссийский — последний)."""
     current = current_tournament_season()
     if not current:
         return None
@@ -220,7 +220,7 @@ def build_russia_problems_matrix(russia_page):
         t.pk: {link.problem_id for link in t.season_problem_links.all()}
         for t in tours
     }
-    # В матрице только турниры, у которых уже выбраны задачи сезона.
+    # В матрице только турниры, у которых уже выбраны задания сезона.
     tours = [t for t in tours if linked.get(t.pk)]
 
     columns = [
@@ -236,7 +236,7 @@ def build_russia_problems_matrix(russia_page):
         for t in tours
     ]
 
-    # Открытый всероссийский — все задачи сезона, всегда последний столбец.
+    # Открытый всероссийский — все задания сезона, всегда последний столбец.
     national = open_all_russia_payload(current)
     columns.append(
         {
@@ -802,8 +802,8 @@ class TournamentPage(Page):
             ],
             heading="IYPT",
         ),
-        InlinePanel("problems", label="Задачи"),
-        InlinePanel("problem_scans", label="Сканы задач (страница / разворот)"),
+        InlinePanel("problems", label="Задания"),
+        InlinePanel("problem_scans", label="Сканы заданий (страница / разворот)"),
         InlinePanel("ranking", label="Итоговая таблица"),
         MultiFieldPanel(
             [
@@ -1160,7 +1160,7 @@ class RegionalTournament(ClusterableModel, Orderable):
         ),
         FieldPanel("contacts"),
         FieldPanel("info"),
-        InlinePanel("problems", label="Задачи года"),
+        InlinePanel("problems", label="Задания года"),
         MultiFieldPanel(
             [
                 FieldPanel("results_text"),
@@ -1216,7 +1216,7 @@ class RegionalTournament(ClusterableModel, Orderable):
         return date(spring_year, 12, 31)
 
     def current_season_problem_rows(self):
-        """Задачи текущего сезона, отмеченные для этого регионального турнира."""
+        """Задания текущего сезона, отмеченные для этого регионального турнира."""
         current = current_tournament_season()
         if not current:
             return [], None
@@ -1243,9 +1243,9 @@ class RegionalTournament(ClusterableModel, Orderable):
         ]
         pending = bool(current) and len(problems) == 0
         if pending:
-            pending_text = f"Задачи на сезон «{season_label}» ещё не выбраны."
+            pending_text = f"Задания на сезон «{season_label}» ещё не выбраны."
         elif not current:
-            pending_text = "Текущий сезон не задан — задачи регионального турнира пока не привязаны."
+            pending_text = "Текущий сезон не задан — задания регионального турнира пока не привязаны."
             pending = True
         else:
             pending_text = ""
@@ -1281,7 +1281,7 @@ class RegionalTournament(ClusterableModel, Orderable):
 
 
 class RegionalTournamentProblem(models.Model):
-    """Какие задачи текущего (или прошлого) сезона играют на региональном турнире."""
+    """Какие задания текущего (или прошлого) сезона играют на региональном турнире."""
 
     tournament = models.ForeignKey(
         RegionalTournament,
@@ -1293,20 +1293,20 @@ class RegionalTournamentProblem(models.Model):
         "home.TournamentProblem",
         on_delete=models.CASCADE,
         related_name="regional_links",
-        verbose_name="Задача сезона",
+        verbose_name="Задание сезона",
     )
 
     class Meta:
-        verbose_name = "Задача регионального турнира"
-        verbose_name_plural = "Задачи региональных турниров"
+        verbose_name = "Задание регионального турнира"
+        verbose_name_plural = "Задания региональных турниров"
         unique_together = [("tournament", "problem")]
 
     def __str__(self):
-        return f"{self.tournament_id}: задача {self.problem_id}"
+        return f"{self.tournament_id}: задание {self.problem_id}"
 
 
 class RegionalProblem(Orderable):
-    """Устарело: свободный текст задач. Сайт использует RegionalTournamentProblem."""
+    """Устарело: свободный текст заданий. Сайт использует RegionalTournamentProblem."""
 
     tournament = ParentalKey(
         RegionalTournament,

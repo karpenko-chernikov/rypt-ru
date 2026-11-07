@@ -19,7 +19,7 @@ urlpatterns = [
     path("sezony/<int:year>/meta/", views.season_meta, name="season_meta"),
     path("sezony/<int:year>/v-proshedshie/", views.season_archive, name="season_archive"),
     path("sezony/<int:year>/sdelat-tekushchim/", views.season_make_current, name="season_make_current"),
-    # Задачи
+    # Задания
     path("sezony/<int:year>/zadachi/", views.season_problems, name="season_problems"),
     path("sezony/<int:year>/zadachi/dobavit/", views.problem_add, name="problem_add"),
     path("sezony/<int:year>/zadachi/<int:pk>/", views.problem_edit, name="problem_edit"),

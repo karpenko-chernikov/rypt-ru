@@ -32,7 +32,7 @@ class EditorChangeLog(models.Model):
     TAB_OTHER = "other"
     TAB_CHOICES = [
         (TAB_META, "Мета"),
-        (TAB_ZADACHI, "Задачи"),
+        (TAB_ZADACHI, "Задания"),
         (TAB_REZULTATY, "Результаты"),
         (TAB_IYPT, "IYPT"),
         (TAB_FOTO, "Фото"),

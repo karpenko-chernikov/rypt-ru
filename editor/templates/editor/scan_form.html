@@ -1,7 +1,7 @@
 {% extends "editor/base.html" %}
 {% block title %}Скан{% endblock %}
 {% block content %}
-<p class="editor-back"><a href="{% url 'editor:season_problems' page.year %}">← Задачи</a></p>
+<p class="editor-back"><a href="{% url 'editor:season_problems' page.year %}">← Задания</a></p>
 <h1 class="editor-h1">Загрузить скан</h1>
 <p class="editor-lead">Одна картинка — страница. Две — разворот (левая и правая полосы).</p>
 <form method="post" class="editor-form" enctype="multipart/form-data">

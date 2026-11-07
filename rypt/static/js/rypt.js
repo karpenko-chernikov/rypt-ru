@@ -741,7 +741,7 @@
             ol.innerHTML = "";
             if (problemsPending) {
                 if (pendingEl) {
-                    pendingEl.textContent = card.problems_pending_text || "Задачи сезона ещё не выбраны.";
+                    pendingEl.textContent = card.problems_pending_text || "Задания сезона ещё не выбраны.";
                     pendingEl.classList.remove("is-hidden");
                 }
                 ol.classList.add("is-hidden");
@@ -820,7 +820,7 @@
             });
         });
 
-        // Матрица задач: клик по столбцу = карточка турнира (+ подсветка региона на карте).
+        // Матрица заданий: клик по столбцу = карточка турнира (+ подсветка региона на карте).
         root.querySelectorAll("[data-matrix-region]").forEach(function (btn) {
             btn.addEventListener("click", function () {
                 var code = btn.getAttribute("data-matrix-region");
