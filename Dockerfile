@@ -28,12 +28,9 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
     libwebp-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# Install the application server.
-RUN pip install "gunicorn==20.0.4"
-
-# Install the project requirements.
+# Install the project requirements (pinned + hashed; see requirements.txt).
 COPY requirements.txt /
-RUN pip install -r /requirements.txt
+RUN pip install --require-hashes --no-cache-dir -r /requirements.txt
 
 # Use /app folder as a directory where the source code is stored.
 WORKDIR /app

@@ -1,0 +1,17 @@
+# Direct dependencies — pinned to patched versions (SEC-06).
+# Transitive dependencies are resolved and hashed into requirements.txt
+# by:  pip-compile --generate-hashes --output-file=requirements.txt requirements.in
+
+Django==5.2.19              # Django 5.2 LTS, latest patch
+wagtail==7.4.4              # Wagtail 7.4 LTS, latest patch (clears all wagtail advisories)
+gunicorn==23.0.0            # matches current runtime; no advisory
+nh3==0.3.7                  # HTML sanitizer used by editor
+
+# Pinned explicitly because pip-audit flags the versions pulled transitively:
+Pillow==13.0.0              # clears all pillow advisories (Wagtail allows >=9.1.0)
+djangorestframework==3.18.2 # clears CVE-2026-114136/114137/114138 (Wagtail allows >=3.15.1)
+certifi==2026.10.18         # clears PYSEC-2026-4320 (transitive via requests)
+requests==2.34.2            # not flagged, pinned for reproducibility
+
+# Build tooling present in the base image; pin to the patched version:
+setuptools==84.1.0          # clears GHSA-xmj3-9gf7-h52w
