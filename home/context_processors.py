@@ -224,7 +224,6 @@ def site_nav(request):
     return {
         "nav_home": home,
         "nav_items": items,
-        "nav_old_site": "https://old.rypt.ru",
         "slides": slides,
         "slide_index": slide_index,
         "is_deck": is_deck,
