@@ -8,11 +8,20 @@
 """
 
 from django.template import Context, Template
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
+from wagtail.models import Page, PageViewRestriction
 from wagtail.rich_text import expand_db_html
 
 from editor.forms import RegionalTournamentForm
 from home.html_sanitize import sanitize_limited_html
+from home.models import (
+    HomePage,
+    TournamentIndexPage,
+    TournamentPage,
+    current_tournament_season,
+    open_all_russia_payload,
+    public_current_tournament_season,
+)
 
 
 class SanitizerTests(SimpleTestCase):
@@ -84,3 +93,56 @@ class JsonScriptTests(SimpleTestCase):
         self.assertNotIn("</script><script>", out)
         self.assertIn("\\u003C/script\\u003E", out)
         self.assertIn('id="russia-data"', out)
+
+
+class SeasonVisibilityTests(TestCase):
+    """SEC-04: публичные данные не раскрывают черновики и закрытые сезоны."""
+
+    def setUp(self):
+        root = Page.get_first_root_node()
+        self.home = HomePage(title="Главная", slug="home-sec04", intro="")
+        root.add_child(instance=self.home)
+        self.home.save_revision().publish()
+
+        self.tournament_index = TournamentIndexPage(
+            title="Сезоны", slug="tournaments", intro=""
+        )
+        self.home.add_child(instance=self.tournament_index)
+        self.tournament_index.save_revision().publish()
+
+    def _season(self, slug, year, is_current, live=True):
+        season = TournamentPage(
+            title=f"Сезон {year}",
+            slug=slug,
+            year=year,
+            is_current=is_current,
+            live=live,
+        )
+        self.tournament_index.add_child(instance=season)
+        if live:
+            season.save_revision().publish()
+        return season
+
+    def test_editor_helper_returns_draft_but_public_does_not(self):
+        draft = self._season("draft-season", 2027, True, live=False)
+        self.assertEqual(current_tournament_season(), draft)
+        self.assertIsNone(public_current_tournament_season())
+
+    def test_public_season_helper_excludes_private(self):
+        private = self._season("private-season", 2027, True)
+        PageViewRestriction.objects.create(
+            page=private,
+            restriction_type=PageViewRestriction.LOGIN,
+        )
+        self.assertEqual(current_tournament_season(), private)
+        self.assertIsNone(public_current_tournament_season())
+
+    def test_open_all_russia_payload_hides_private_season(self):
+        season = self._season("private-season", 2027, True)
+        PageViewRestriction.objects.create(
+            page=season,
+            restriction_type=PageViewRestriction.LOGIN,
+        )
+        payload = open_all_russia_payload()
+        self.assertEqual(payload["problems"], [])
+        self.assertEqual(payload["season_label"], "")

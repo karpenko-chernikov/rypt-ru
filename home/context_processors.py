@@ -13,6 +13,7 @@ from home.models import (
     TrainingBoardPage,
     build_russia_problems_matrix,
     load_russia_svg,
+    public_page_q,
 )
 from home.documents import CHARTER_PDF, REGULATION_PDF, VOK
 from home.partners import PARTNERS
@@ -49,25 +50,34 @@ def _russia_slide(russia_page, request):
 
 
 def site_nav(request):
-    home = HomePage.objects.live().first()
+    q = public_page_q()
+    home = HomePage.objects.live().public().filter(q).first()
     news_index = None
     items = []
     slides = []
     if home:
-        news_index = NewsIndexPage.objects.child_of(home).live().first()
+        news_index = (
+            NewsIndexPage.objects.child_of(home).live().public().filter(q).first()
+        )
         pages = {
             page.slug: page
-            for page in ContentPage.objects.child_of(home).live().public()
+            for page in ContentPage.objects.child_of(home).live().public().filter(q)
         }
         russia_page = (
-            RussiaTournamentsPage.objects.child_of(home).live().public().first()
+            RussiaTournamentsPage.objects.child_of(home).live().public().filter(q).first()
         )
         materials_page = (
-            MaterialsIndexPage.objects.child_of(home).live().public().first()
+            MaterialsIndexPage.objects.child_of(home).live().public().filter(q).first()
         )
-        contacts_page = ContactsPage.objects.child_of(home).live().public().first()
-        training_board = TrainingBoardPage.objects.child_of(home).live().public().first()
-        tournament_index = TournamentIndexPage.objects.child_of(home).live().first()
+        contacts_page = (
+            ContactsPage.objects.child_of(home).live().public().filter(q).first()
+        )
+        training_board = (
+            TrainingBoardPage.objects.child_of(home).live().public().filter(q).first()
+        )
+        tournament_index = (
+            TournamentIndexPage.objects.child_of(home).live().public().filter(q).first()
+        )
         slides.append(
             {
                 "title": "Главная",
@@ -91,6 +101,7 @@ def site_nav(request):
                                 NewsPage.objects.child_of(news_index)
                                 .live()
                                 .public()
+                                .filter(q)
                                 .order_by("-date", "-first_published_at")
                             ),
                         }
@@ -103,6 +114,7 @@ def site_nav(request):
                         TournamentPage.objects.child_of(tournament_index)
                         .live()
                         .public()
+                        .filter(q)
                         .order_by("-year")
                     )
                     slides.append(

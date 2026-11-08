@@ -7,13 +7,14 @@ from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.fields import RichTextField, StreamField
-from wagtail.models import Orderable, Page
+from wagtail.models import Orderable, Page, PageViewRestriction
 from wagtail.rich_text import expand_db_html
 
 from home.blocks import ContactsSectionBlock
@@ -31,6 +32,32 @@ from home.html_sanitize import sanitize_limited_html
 # Синтетический столбец матрицы / карточка (не субъект РФ на карте).
 OPEN_ALL_RUSSIA_CODE = "OPEN"
 OPEN_ALL_RUSSIA_TITLE = "Открытый всероссийский турнир"
+
+
+def public_page_q() -> Q:
+    """Q-фильтр: исключает страницы с прямыми и наследуемыми ограничениями.
+
+    Wagtail применяет приватность по наследству в serve(), но
+    PageQuerySet.public() исключает только страницы с собственной
+    PageViewRestriction. Поэтому отдельно исключаем потомков закрытых
+    страниц по treebeard-path.
+    """
+    restricted_paths = list(
+        Page.objects.filter(view_restrictions__isnull=False).values_list(
+            "path", flat=True
+        )
+    )
+    if not restricted_paths:
+        return Q()  # ~Q() при пустом списке отсеял бы всё
+    q = Q()
+    for path in restricted_paths:
+        q |= Q(path__startswith=path)
+    return ~q
+
+
+def public_live(qs):
+    """live + public + исключение прямых и наследуемых ограничений."""
+    return qs.live().public().filter(public_page_q())
 
 _MONTH_SORT = (
     ("январ", 1),
@@ -109,7 +136,19 @@ def academic_season_label(year):
 
 
 def current_tournament_season():
+    """Редакторская выборка: любой текущий сезон, включая черновики и закрытые."""
     return TournamentPage.objects.filter(is_current=True).first()
+
+
+def public_current_tournament_season():
+    """Публичная выборка текущего сезона."""
+    return (
+        TournamentPage.objects.filter(is_current=True)
+        .live()
+        .public()
+        .filter(public_page_q())
+        .first()
+    )
 
 
 def _season_spring_year(current) -> int:
@@ -147,7 +186,7 @@ def _month_day_from_note(note: str) -> tuple[int, int] | None:
 
 def open_all_russia_payload(current=None):
     """Карточка открытого всероссийского турнира для панели и матрицы."""
-    current = current or current_tournament_season()
+    current = current or public_current_tournament_season()
     season_label = academic_season_label(current.year) if current else ""
     problems = []
     if current:
@@ -206,7 +245,7 @@ def matrix_column_when(city: str, when: str) -> str:
 
 def build_russia_problems_matrix(russia_page):
     """Матрица заданий текущего сезона × турниры (регионы по датам, всероссийский — последний)."""
-    current = current_tournament_season()
+    current = public_current_tournament_season()
     if not current:
         return None
     problems = list(current.problems.all().order_by("number"))
@@ -357,7 +396,13 @@ class HomePage(Page):
 
     def get_context(self, request):
         context = super().get_context(request)
-        news_index = NewsIndexPage.objects.child_of(self).live().first()
+        news_index = (
+            NewsIndexPage.objects.child_of(self)
+            .live()
+            .public()
+            .filter(public_page_q())
+            .first()
+        )
         news = NewsPage.objects.none()
         if news_index:
             news = (
@@ -1279,7 +1324,7 @@ class RegionalTournament(ClusterableModel, Orderable):
 
     def current_season_problem_rows(self):
         """Задания текущего сезона, отмеченные для этого регионального турнира."""
-        current = current_tournament_season()
+        current = public_current_tournament_season()
         if not current:
             return [], None
         qs = (
