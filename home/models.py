@@ -422,7 +422,7 @@ class HomePage(Page):
         """Данные блока «Информация о ближайшем турнире» для главной страницы."""
         files = []
         for item in self.info_files.all():
-            url = item.url or (item.document.file.url if item.document else "")
+            url = item.url or (item.document.url if item.document else "")
             if not url:
                 continue
             files.append(
@@ -465,7 +465,7 @@ class HomeInfoFile(Orderable):
         "Или ссылка",
         max_length=500,
         blank=True,
-        help_text="Внешняя ссылка (https://…) или путь к файлу (/media/…).",
+        help_text="Внешняя ссылка (https://…) или путь /documents/… либо /media/images/….",
     )
 
     panels = [
@@ -473,6 +473,18 @@ class HomeInfoFile(Orderable):
         FieldPanel("document"),
         FieldPanel("url"),
     ]
+
+    def clean(self):
+        url = (self.url or "").strip()
+        if url.startswith("/media/documents/"):
+            raise ValidationError(
+                {
+                    "url": (
+                        "Прямые ссылки /media/documents/… запрещены. "
+                        "Используйте поле «Файл (документ)» или путь /documents/…."
+                    )
+                }
+            )
 
 
 class HomeInfoButton(Orderable):

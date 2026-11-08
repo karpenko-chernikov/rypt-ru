@@ -6,10 +6,12 @@ import hmac
 import secrets
 from io import BytesIO
 from urllib.parse import urlparse
+from uuid import uuid4
 
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import UploadedFile
 from django.shortcuts import resolve_url
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -22,6 +24,16 @@ ALLOWED_IMAGE_CONTENT_TYPES = {
 }
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 MAX_IMAGE_BYTES = 8 * 1024 * 1024  # 8 MiB
+MAX_IMAGE_PIXELS = 30_000_000  # 30 MP — защита от decompression-бомб
+MAX_IMAGE_FRAMES = 1
+
+_IMAGE_FORMAT_EXT = {
+    "JPEG": ".jpg",
+    "PNG": ".png",
+    "WEBP": ".webp",
+    "GIF": ".gif",
+}
+_IMAGE_SAVE_FORMATS = set(_IMAGE_FORMAT_EXT)
 
 
 def client_ip(request) -> str:
@@ -79,8 +91,75 @@ def validate_public_http_url(value: str, *, field_name: str = "Ссылка") ->
     return value
 
 
-def validate_editor_image(upload: UploadedFile | None) -> UploadedFile | None:
-    """Проверка картинки: размер, расширение, content-type, декод Pillow."""
+def _normalize_image(upload):
+    """Полностью декодирует изображение и возвращает безопасную перекодированную копию."""
+    try:
+        from PIL import Image as PILImage
+        from PIL import ImageOps
+    except ImportError as exc:
+        raise ValidationError("Сервер не может проверить изображение.") from exc
+
+    upload.seek(0)
+    raw = upload.read()
+    if len(raw) > MAX_IMAGE_BYTES:
+        raise ValidationError("Файл больше 8 МБ.")
+
+    try:
+        with PILImage.open(BytesIO(raw)) as probe:
+            probe.verify()
+    except ValidationError:
+        raise
+    except Exception as exc:
+        raise ValidationError("Файл повреждён или это не изображение.") from exc
+
+    try:
+        with PILImage.open(BytesIO(raw)) as img:
+            fmt = img.format or ""
+            if fmt not in _IMAGE_SAVE_FORMATS:
+                raise ValidationError("Формат изображения не поддерживается.")
+            frames = getattr(img, "n_frames", 1)
+            if frames > MAX_IMAGE_FRAMES:
+                raise ValidationError("Анимированные изображения не поддерживаются.")
+            width, height = img.size
+            if width * height > MAX_IMAGE_PIXELS:
+                raise ValidationError("Изображение слишком большое: превышен лимит пикселей.")
+
+            img = ImageOps.exif_transpose(img)
+            if fmt == "JPEG":
+                img = img.convert("RGB")
+                save_fmt = "JPEG"
+                save_kwargs = {"quality": 92, "optimize": True}
+            elif fmt == "PNG":
+                if img.mode not in ("RGB", "RGBA", "P", "L", "LA", "1"):
+                    img = img.convert("RGBA")
+                save_fmt = "PNG"
+                save_kwargs = {"optimize": True}
+            elif fmt == "WEBP":
+                if img.mode not in ("RGB", "RGBA"):
+                    img = img.convert("RGBA")
+                save_fmt = "WEBP"
+                save_kwargs = {"quality": 90, "method": 6}
+            else:  # GIF — принимаем только одиночный кадр и перекодируем в PNG
+                img = img.convert("RGBA")
+                save_fmt = "PNG"
+                save_kwargs = {"optimize": True}
+
+            buf = BytesIO()
+            img.save(buf, format=save_fmt, **save_kwargs)
+            buf.seek(0)
+            if buf.getbuffer().nbytes > MAX_IMAGE_BYTES:
+                raise ValidationError("Файл больше 8 МБ после перекодирования.")
+
+            name = f"{uuid4().hex}{_IMAGE_FORMAT_EXT[save_fmt]}"
+            return ContentFile(buf.read(), name=name)
+    except ValidationError:
+        raise
+    except Exception as exc:
+        raise ValidationError("Файл повреждён или это не изображение.") from exc
+
+
+def validate_editor_image(upload: UploadedFile | None):
+    """Проверка картинки и возврат безопасной перекодированной копии."""
     if upload is None:
         return None
     name = (getattr(upload, "name", "") or "").lower()
@@ -97,25 +176,4 @@ def validate_editor_image(upload: UploadedFile | None) -> UploadedFile | None:
     size = getattr(upload, "size", None)
     if size is not None and size > MAX_IMAGE_BYTES:
         raise ValidationError("Файл больше 8 МБ.")
-    try:
-        from PIL import Image as PILImage
-    except ImportError as exc:
-        raise ValidationError("Сервер не может проверить изображение.") from exc
-    try:
-        upload.seek(0)
-        raw = upload.read()
-        if len(raw) > MAX_IMAGE_BYTES:
-            raise ValidationError("Файл больше 8 МБ.")
-        with PILImage.open(BytesIO(raw)) as img:
-            img.verify()
-        upload.seek(0)
-        with PILImage.open(upload) as img2:
-            img2.load()
-            if img2.format not in {"JPEG", "PNG", "WEBP", "GIF"}:
-                raise ValidationError("Формат изображения не поддерживается.")
-        upload.seek(0)
-    except ValidationError:
-        raise
-    except Exception as exc:
-        raise ValidationError("Файл повреждён или это не изображение.") from exc
-    return upload
+    return _normalize_image(upload)

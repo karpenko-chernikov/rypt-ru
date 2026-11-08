@@ -492,7 +492,8 @@ def problem_delete(request, year, pk):
 
 
 def _save_wagtail_image(upload, title: str) -> Image:
-    image = Image(title=title, file=ImageFile(upload, name=upload.name))
+    name = getattr(upload, "name", None) or "image"
+    image = Image(title=title, file=ImageFile(upload, name=name))
     image.save()
     return image
 

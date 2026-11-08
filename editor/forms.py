@@ -84,7 +84,12 @@ class ResultsMoreForm(forms.Form):
         value = (self.cleaned_data.get("results_more_url") or "").strip()
         if not value:
             return ""
-        # Относительные медиа-пути сайта (/media/...) разрешены.
+        # Сырые пути к документам запрещены: они должны идти через /documents/….
+        if value.startswith("/media/documents/"):
+            raise ValidationError(
+                "Прямые ссылки /media/documents/… запрещены. Используйте /documents/…."
+            )
+        # Публичные изображения (/media/images/…) и Wagtail-документы (/documents/…) разрешены.
         if value.startswith("/media/") or value.startswith("/documents/"):
             if "://" in value or "\\" in value or ".." in value:
                 raise ValidationError("Некорректный внутренний путь.")
