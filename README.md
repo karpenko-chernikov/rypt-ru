@@ -96,19 +96,53 @@ python manage.py fill_russia_regions
 
 ## Деплой (staging)
 
-Сервер: код в `/var/www/rypt`, env в `/etc/rypt.env` (не в git), сервис `rypt.service`, nginx из `deploy/nginx-rypt.conf`.
+Сервер: checkout исходников в `/srv/rypt/source`, env в `/etc/rypt.env` (не в git),
+сервис `rypt.service`, nginx из `deploy/nginx-rypt.conf`.
+
+Схема прав (закрывает путь эскалации «runtime подменил код при выкладке»):
+
+| Каталог | Владелец / режим | Назначение |
+|---|---|---|
+| `/srv/rypt/releases/<ts>/` | `rypt-deploy:rypt` 0750 | код + `.venv` + static конкретного релиза (runtime: r-x) |
+| `/srv/rypt/current` | symlink | текущий релиз |
+| `/srv/rypt/previous` | symlink | предыдущий релиз (для отката) |
+| `/srv/rypt/source` | `rypt-deploy:rypt` | checkout исходников |
+| `/var/lib/rypt/db` | `rypt:rypt` | SQLite |
+| `/var/lib/rypt/media` | `rypt:www-data` | загрузки (nginx читает) |
+| `/var/lib/rypt/tmp`, `/var/lib/rypt/pycache` | `rypt:rypt` | временные файлы |
+
+Выкладка:
 
 ```bash
-# на сервере, после rsync/git pull:
-cd /var/www/rypt
-source /etc/rypt.env
-export DJANGO_SETTINGS_MODULE=rypt.settings.production
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py collectstatic --noinput
-systemctl restart rypt
+# 1) на dev-машине: положить свежие исходники в checkout на сервере
+rsync -av --delete --exclude-from=deploy/rsync-exclude.txt ./ user@host:/srv/rypt/source/
+
+# 2) на сервере:
+sudo deploy/bootstrap.sh            # build как rypt-deploy, миграции как rypt
 ```
 
-Переменные окружения — см. `.env.example`. Секреты (`DJANGO_SECRET_KEY`, пароли) **никогда** не коммитить.
+Откат:
+
+```bash
+sudo deploy/rollback.sh
+```
+
+Переезд со старой раскладки (`/var/www/rypt`): первый запуск `bootstrap.sh`
+сам переносит `db.sqlite3*`, `media/` и `_scan_preview` в новые каталоги, после
+чего старый путь становится root-owned и не используется. Если `sync_telegram`
+был заведён в cron/systemd-timer по старому пути — обновите команду:
+
+```bash
+setpriv --reuid=rypt --regid=rypt --init-groups -- bash -c '
+  set -a; . /etc/rypt.env; set +a
+  export DJANGO_SETTINGS_MODULE=rypt.settings.production
+  export PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/var/lib/rypt/pycache TMPDIR=/var/lib/rypt/tmp
+  exec "$@"' _ /srv/rypt/current/.venv/bin/python /srv/rypt/current/manage.py sync_telegram
+```
+
+Переменные окружения — см. `.env.example` (в production — `/etc/rypt.env`).
+Секреты (`DJANGO_SECRET_KEY`, пароли) **никогда** не коммитить.
+Каталоги данных задаются через `DATABASE_PATH`, `MEDIA_ROOT`, `STATIC_ROOT`.
 
 Чтобы открыть Wagtail-админку `/redaktura/` на staging (вне `DEBUG`), добавьте
 в `/etc/rypt.env` строку `ENABLE_WAGTAIL_ADMIN=1` и перезапустите сервис:

@@ -91,7 +91,7 @@ WSGI_APPLICATION = "rypt.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        "NAME": os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "db.sqlite3")),
         # SQLite + несколько процессов gunicorn: даём транзакциям дождаться
         # блокировки и включаем WAL, чтобы чтение не мешало записи
         # (иначе периодически вылетает "database is locked" → 500).
@@ -141,10 +141,10 @@ STATICFILES_DIRS = [
     os.path.join(PROJECT_DIR, "static"),
 ]
 
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.environ.get("STATIC_ROOT", os.path.join(BASE_DIR, "static"))
 STATIC_URL = "/static/"
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
 MEDIA_URL = "/media/"
 
 # Default storage settings, with the staticfiles storage updated.

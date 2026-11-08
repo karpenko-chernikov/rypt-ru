@@ -4,6 +4,15 @@ from .base import *
 
 DEBUG = False
 
+# Каталоги данных/медиа вынесены в writable-каталоги runtime-пользователя,
+# статика собирается в каталог текущего релиза (читается Nginx).
+# Значения можно переопределить через /etc/rypt.env.
+DATABASES["default"]["NAME"] = os.environ.get(
+    "DATABASE_PATH", "/var/lib/rypt/db/db.sqlite3"
+)
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/var/lib/rypt/media")
+STATIC_ROOT = os.environ.get("STATIC_ROOT", "/srv/rypt/current/static")
+
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
 ALLOWED_HOSTS = [

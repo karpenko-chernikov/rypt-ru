@@ -3,13 +3,19 @@ Description=RYPT Wagtail
 After=network.target
 
 [Service]
-User=www-data
-Group=www-data
-WorkingDirectory=/var/www/rypt
+User=rypt
+Group=rypt
+WorkingDirectory=/srv/rypt/current
 EnvironmentFile=/etc/rypt.env
 Environment=DJANGO_SETTINGS_MODULE=rypt.settings.production
-ExecStart=/var/www/rypt-venv/bin/gunicorn rypt.wsgi:application --bind 127.0.0.1:8000 --workers 2 --timeout 60
+Environment=PYTHONPYCACHEPREFIX=/var/lib/rypt/pycache
+Environment=TMPDIR=/var/lib/rypt/tmp
+ExecStart=/srv/rypt/current/.venv/bin/gunicorn rypt.wsgi:application --bind 127.0.0.1:8000 --workers 2 --timeout 60
 Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/rypt
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
