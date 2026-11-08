@@ -17,7 +17,6 @@ from home.models import (
 from home.documents import CHARTER_PDF, REGULATION_PDF, VOK
 from home.partners import PARTNERS
 from home.regions import REGIONS
-import json
 
 NAV_SLUGS = [
     ("news", "Новости"),
@@ -43,8 +42,8 @@ def _russia_slide(russia_page, request):
         "kind": "russia",
         "intro": russia_page.intro,
         "svg": load_russia_svg(),
-        "regions_json": json.dumps(russia_page.regions_payload(), ensure_ascii=False),
-        "region_names_json": json.dumps(REGIONS, ensure_ascii=False),
+        "regions_payload": russia_page.regions_payload(),
+        "region_names": REGIONS,
         "problems_matrix": build_russia_problems_matrix(russia_page),
     }
 

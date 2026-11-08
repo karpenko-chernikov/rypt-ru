@@ -469,8 +469,8 @@
         if (!svg || !panel) return;
         root.dataset.ready = "1";
 
-        var data = parseJsonScript(root, "[data-russia-data]");
-        var names = parseJsonScript(root, "[data-russia-names]");
+        var data = parseJsonScript(root, "#russia-data");
+        var names = parseJsonScript(root, "#russia-names");
         var empty = panel.querySelector("[data-russia-empty]");
         var body = panel.querySelector("[data-russia-body]");
         var viewport = root.querySelector("[data-russia-viewport]");

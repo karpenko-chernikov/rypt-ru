@@ -55,8 +55,8 @@
             </div>
         </aside>
     </div>
-    <script type="application/json" data-russia-data>{{ regions_json|safe }}</script>
-    <script type="application/json" data-russia-names>{{ region_names_json|safe }}</script>
+    {{ regions_payload|json_script:"russia-data" }}
+    {{ region_names|json_script:"russia-names" }}
 
     {% if problems_matrix %}
     <section class="russia-matrix" data-russia-matrix aria-label="Задания сезона на региональных турнирах">

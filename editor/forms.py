@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 from editor.authz import grant_editor
 from editor.security import validate_editor_image, validate_public_http_url
+from home.html_sanitize import sanitize_limited_html
 
 
 class EditorLoginForm(AuthenticationForm):
@@ -256,6 +257,9 @@ class RegionalTournamentForm(forms.Form):
             self.fields["season_problem_ids"].help_text = (
                 "Нет заданий текущего сезона — сначала заведите их в разделе «Сезоны»."
             )
+
+    def clean_info(self):
+        return sanitize_limited_html(self.cleaned_data.get("info") or "")
 
     def clean_results_url(self):
         value = (self.cleaned_data.get("results_url") or "").strip()

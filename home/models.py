@@ -1,5 +1,4 @@
 import html as html_lib
-import json
 import re
 from datetime import date
 from pathlib import Path
@@ -27,6 +26,7 @@ from home.forms import (
     generate_captcha,
 )
 from home.regions import REGION_CHOICES, REGIONS
+from home.html_sanitize import sanitize_limited_html
 
 # Синтетический столбец матрицы / карточка (не субъект РФ на карте).
 OPEN_ALL_RUSSIA_CODE = "OPEN"
@@ -1139,8 +1139,8 @@ class RussiaTournamentsPage(Page):
     def get_context(self, request):
         context = super().get_context(request)
         context["russia_svg"] = load_russia_svg()
-        context["regions_json"] = json.dumps(self.regions_payload(), ensure_ascii=False)
-        context["region_names_json"] = json.dumps(REGIONS, ensure_ascii=False)
+        context["regions_payload"] = self.regions_payload()
+        context["region_names"] = REGIONS
         context["active_region_codes"] = list(
             {
                 r.region_code
@@ -1321,7 +1321,7 @@ class RegionalTournament(ClusterableModel, Orderable):
             "city": self.city,
             "when": self.when_label(),
             "contacts": self.contacts,
-            "info_html": expand_db_html(self.info) if self.info else "",
+            "info_html": sanitize_limited_html(expand_db_html(self.info)) if self.info else "",
             "problems": problems,
             "problems_pending": pending,
             "problems_pending_text": pending_text,
