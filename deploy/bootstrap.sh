@@ -50,6 +50,8 @@ fi
 chown -R rypt-deploy:rypt "$RELEASE_ROOT/data"
 
 # --- env --------------------------------------------------------------------
+# Production fail-closed: DJANGO_SECRET_KEY, ALLOWED_HOSTS и
+# WAGTAILADMIN_BASE_URL обязательны; недостающие дополняем ниже.
 if [[ ! -f /etc/rypt.env ]]; then
   key=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
   cat >/etc/rypt.env <<EOF
@@ -58,8 +60,12 @@ ALLOWED_HOSTS=rypt.folomin.com
 WAGTAILADMIN_BASE_URL=https://rypt.folomin.com
 EOF
 fi
-# Дописываем недостающие переменные каталогов (нужно при первом переезде).
+# Дописываем недостающие переменные (нужно при первом переезде и защищает
+# от случайного удаления строки в /etc/rypt.env).
 {
+  grep -q '^DJANGO_SECRET_KEY=' /etc/rypt.env || echo "DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')"
+  grep -q '^ALLOWED_HOSTS=' /etc/rypt.env || echo 'ALLOWED_HOSTS=rypt.folomin.com'
+  grep -q '^WAGTAILADMIN_BASE_URL=' /etc/rypt.env || echo 'WAGTAILADMIN_BASE_URL=https://rypt.folomin.com'
   grep -q '^DATABASE_PATH=' /etc/rypt.env || echo 'DATABASE_PATH=/var/lib/rypt/db/db.sqlite3'
   grep -q '^MEDIA_ROOT='    /etc/rypt.env || echo 'MEDIA_ROOT=/var/lib/rypt/media'
   grep -q '^STATIC_ROOT='   /etc/rypt.env || echo 'STATIC_ROOT=/srv/rypt/current/static'
@@ -197,6 +203,17 @@ systemctl restart nginx
 # работает через HTTPS Cloudflare.
 certbot --nginx -d rypt.folomin.com --non-interactive --agree-tos \
   --register-unsafely-without-email --redirect || true
+
+# certbot --nginx может переписать server-блоки и вернуть редирект/заголовки
+# к $host. Проверяем канонические директивы из deploy/nginx-rypt.conf и, если
+# certbot их затёр, переустанавливаем конфиг из release-дерева.
+if ! grep -q "proxy_set_header Host rypt.folomin.com" /etc/nginx/sites-enabled/rypt \
+   || ! grep -q "proxy_set_header X-Forwarded-Host rypt.folomin.com" /etc/nginx/sites-enabled/rypt \
+   || ! grep -q "return 444" /etc/nginx/sites-enabled/rypt; then
+  install -o root -g root -m 0644 "$REL/deploy/nginx-rypt.conf" /etc/nginx/sites-available/rypt
+  nginx -t
+  systemctl reload nginx
+fi
 
 # Старый путь больше не используется — делаем его inert (владелец root).
 if [[ -d "$OLD_APP" ]]; then

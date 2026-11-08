@@ -4,6 +4,17 @@ from .base import *
 
 DEBUG = False
 
+
+def _require(name):
+    """Fail closed: production must not start without an explicit, valid value."""
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise RuntimeError(
+            f"{name} must be set in the environment for production startup"
+        )
+    return value
+
+
 # Каталоги данных/медиа вынесены в writable-каталоги runtime-пользователя,
 # статика собирается в каталог текущего релиза (читается Nginx).
 # Значения можно переопределить через /etc/rypt.env.
@@ -13,21 +24,25 @@ DATABASES["default"]["NAME"] = os.environ.get(
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/var/lib/rypt/media")
 STATIC_ROOT = os.environ.get("STATIC_ROOT", "/srv/rypt/current/static")
 
-SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+SECRET_KEY = _require("DJANGO_SECRET_KEY")
+if len(SECRET_KEY) < 50 or SECRET_KEY.startswith("django-insecure-"):
+    raise RuntimeError(
+        "DJANGO_SECRET_KEY is too weak for production; "
+        "generate a long random key (e.g. secrets.token_urlsafe(50))"
+    )
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get(
-        "ALLOWED_HOSTS",
-        "rypt.folomin.com",
-    ).split(",")
+    for host in _require("ALLOWED_HOSTS").split(",")
     if host.strip()
 ]
+if not ALLOWED_HOSTS or "*" in ALLOWED_HOSTS:
+    raise RuntimeError(
+        "ALLOWED_HOSTS must be an explicit, non-empty list and must not contain '*'"
+    )
 
-CSRF_TRUSTED_ORIGINS = []
-for host in ALLOWED_HOSTS:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{host}")
-    CSRF_TRUSTED_ORIGINS.append(f"http://{host}")
+# Сайт работает только по HTTPS: доверять http-Origin не нужно.
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 
 WAGTAILADMIN_BASE_URL = os.environ.get(
     "WAGTAILADMIN_BASE_URL",
@@ -39,7 +54,9 @@ WAGTAILADMIN_BASE_URL = os.environ.get(
 ENABLE_WAGTAIL_ADMIN = os.environ.get("ENABLE_WAGTAIL_ADMIN") == "1"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-USE_X_FORWARDED_HOST = True
+# Хост берём из канонического заголовка Host, который выставляет Nginx.
+# Клиентский X-Forwarded-Host игнорируем — иначе он подменяет get_host().
+USE_X_FORWARDED_HOST = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -94,7 +111,5 @@ LOGGING = {
     },
 }
 
-try:
-    from .local import *
-except ImportError:
-    pass
+# Локальные override-файлы в production НЕ подключаются: wildcard-импорт
+# мог бы молча переопределить DEBUG/SECRET_KEY/ALLOWED_HOSTS выше.

@@ -30,6 +30,9 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # при необходимости
+# Локально обязательно dev-настройки: по умолчанию manage.py выбирает production,
+# который без DJANGO_SECRET_KEY/ALLOWED_HOSTS упадёт (fail-closed).
+export DJANGO_SETTINGS_MODULE=rypt.settings.dev
 python manage.py migrate
 python manage.py seed_site
 python manage.py create_editor_invite --base-url http://127.0.0.1:8000
@@ -143,6 +146,11 @@ setpriv --reuid=rypt --regid=rypt --init-groups -- bash -c '
 Переменные окружения — см. `.env.example` (в production — `/etc/rypt.env`).
 Секреты (`DJANGO_SECRET_KEY`, пароли) **никогда** не коммитить.
 Каталоги данных задаются через `DATABASE_PATH`, `MEDIA_ROOT`, `STATIC_ROOT`.
+
+Production-запуск **fail-closed**: без `DJANGO_SECRET_KEY` и явного непустого
+`ALLOWED_HOSTS` (без `*`) сервис не стартует. На прокси Nginx `Host` и
+`X-Forwarded-Host` приводятся к каноническому `rypt.folomin.com`, неизвестные
+хосты отбрасываются (`return 444`).
 
 Чтобы открыть Wagtail-админку `/redaktura/` на staging (вне `DEBUG`), добавьте
 в `/etc/rypt.env` строку `ENABLE_WAGTAIL_ADMIN=1` и перезапустите сервис:

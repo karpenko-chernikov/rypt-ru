@@ -11,8 +11,12 @@ EXPOSE 8000
 # 1. Force Python stdout and stderr streams to be unbuffered.
 # 2. Set PORT variable that is used by Gunicorn. This should match "EXPOSE"
 #    command.
+# 3. Run with production settings. Without the required env
+#    (DJANGO_SECRET_KEY, ALLOWED_HOSTS) startup fails instead of silently
+#    using dev settings.
 ENV PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=8000 \
+    DJANGO_SETTINGS_MODULE=rypt.settings.production
 
 # Install system packages required by Wagtail and Django.
 RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
@@ -45,8 +49,13 @@ COPY --chown=wagtail:wagtail . .
 # Use user "wagtail" to run the build commands below and the server itself.
 USER wagtail
 
-# Collect static files.
-RUN python manage.py collectstatic --noinput --clear
+# Collect static files. Production settings require DJANGO_SECRET_KEY and
+# ALLOWED_HOSTS; here they are throwaway values valid only for this build step.
+# STATIC_ROOT points to a path writable by the "wagtail" user inside the image.
+RUN DJANGO_SECRET_KEY=build-time-only-placeholder-key-not-a-secret \
+    ALLOWED_HOSTS=rypt.folomin.com \
+    STATIC_ROOT=/app/static \
+    python manage.py collectstatic --noinput --clear
 
 # Runtime command that executes when "docker run" is called, it does the
 # following:
@@ -57,4 +66,10 @@ RUN python manage.py collectstatic --noinput --clear
 #   PRACTICE. The database should be migrated manually or using the release
 #   phase facilities of your hosting platform. This is used only so the
 #   Wagtail instance can be started with a simple "docker run" command.
+#
+# SECURITY: production settings are mandatory (see ENV above). Provide real
+# DJANGO_SECRET_KEY/ALLOWED_HOSTS at runtime; the app fails closed otherwise.
+# Gunicorn binds 127.0.0.1:8000 by default — do NOT publish port 8000 publicly;
+# put an HTTPS proxy (Nginx) in front. The systemd deploy (deploy/rypt.service)
+# already binds 127.0.0.1:8000.
 CMD set -xe; python manage.py migrate --noinput; gunicorn rypt.wsgi:application
