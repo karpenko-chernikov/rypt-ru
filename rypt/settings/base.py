@@ -213,3 +213,7 @@ UMAMI_DOMAINS = os.environ.get("UMAMI_DOMAINS", "").strip()
 # (python manage.py create_editor_invite)
 LOGIN_URL = "editor:login"
 LOGIN_REDIRECT_URL = "editor:dashboard"
+
+# IP клиента берём из заголовков прокси только когда это явно включено.
+# По умолчанию доверяем только REMOTE_ADDR (без прокси).
+TRUST_PROXY_HEADERS = False

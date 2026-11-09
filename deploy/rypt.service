@@ -10,7 +10,7 @@ EnvironmentFile=/etc/rypt.env
 Environment=DJANGO_SETTINGS_MODULE=rypt.settings.production
 Environment=PYTHONPYCACHEPREFIX=/var/lib/rypt/pycache
 Environment=TMPDIR=/var/lib/rypt/tmp
-ExecStart=/srv/rypt/current/.venv/bin/gunicorn rypt.wsgi:application --bind 127.0.0.1:8000 --workers 2 --timeout 60
+ExecStart=/srv/rypt/current/.venv/bin/gunicorn rypt.wsgi:application --bind 127.0.0.1:8000 --workers 1 --timeout 60
 Restart=on-failure
 NoNewPrivileges=true
 ProtectSystem=strict

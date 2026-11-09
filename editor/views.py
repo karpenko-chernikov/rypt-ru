@@ -5,7 +5,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.core.files.images import ImageFile
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from wagtail.images.models import Image
 
 from editor.authz import user_is_editor
-from editor.decorators import staff_required
+from editor.decorators import staff_required, superuser_required
 from editor.forms import (
     EditorLoginForm,
     EditorRegisterForm,
@@ -84,7 +84,10 @@ def login_view(request):
     form = EditorLoginForm(request, data=request.POST or None)
     if request.method == "POST":
         ip = client_ip(request)
-        if throttle(f"editor-login:{ip}", limit=12, window=3600):
+        username = (request.POST.get("username") or "").strip().lower()
+        if throttle(f"editor-login:ip:{ip}", limit=12, window=3600) or throttle(
+            f"editor-login:user:{username}", limit=5, window=3600
+        ):
             return HttpResponseForbidden("Слишком много попыток входа. Подождите час.")
         if form.is_valid():
             user = form.get_user()
@@ -100,6 +103,7 @@ def login_view(request):
     return render(request, "editor/login.html", {"form": form})
 
 
+@require_POST
 def logout_view(request):
     logout(request)
     return redirect("editor:login")
@@ -118,26 +122,36 @@ def register_view(request, code):
         if throttle(f"editor-reg:{ip}", limit=5, window=3600):
             return HttpResponseForbidden("Слишком много регистраций с этого адреса.")
         if form.is_valid():
-            with transaction.atomic():
-                locked = EditorInvite.objects.select_for_update().filter(pk=invite.pk).first()
-                if not locked or not locked.is_usable:
-                    raise Http404()
-                user = form.save()
-                locked.used_at = timezone.now()
-                locked.used_by = user
-                locked.save(update_fields=["used_at", "used_by"])
-            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-            request.session.cycle_key()
-            log_change(
-                user=user,
-                action=EditorChangeLog.ACTION_CREATE,
-                summary=f"Регистрация редактора «{user.username}» по приглашению",
-                object_type="user",
-                object_id=user.pk,
-                object_label=user.username,
-            )
-            messages.success(request, "Аккаунт создан. Добро пожаловать в кабинет.")
-            return redirect("editor:dashboard")
+            try:
+                with transaction.atomic():
+                    user = form.save()
+                    # SQLite не поддерживает SELECT ... FOR UPDATE, поэтому захват
+                    # приглашения делаем одним атомарным условным UPDATE: ровно
+                    # один запрос получит claimed == 1, остальные откатятся.
+                    claimed = EditorInvite.objects.filter(
+                        pk=invite.pk,
+                        used_at__isnull=True,
+                        revoked=False,
+                        expires_at__gt=timezone.now(),
+                    ).update(used_at=timezone.now(), used_by=user)
+                    if claimed != 1:
+                        raise Http404()
+            except IntegrityError:
+                # Параллельный запрос занял тот же username — показываем ошибку, а не 500.
+                form.add_error(None, "Это имя пользователя уже занято.")
+            else:
+                login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+                request.session.cycle_key()
+                log_change(
+                    user=user,
+                    action=EditorChangeLog.ACTION_CREATE,
+                    summary=f"Регистрация редактора «{user.username}» по приглашению",
+                    object_type="user",
+                    object_id=user.pk,
+                    object_label=user.username,
+                )
+                messages.success(request, "Аккаунт создан. Добро пожаловать в кабинет.")
+                return redirect("editor:dashboard")
     return render(
         request,
         "editor/register.html",
@@ -156,7 +170,7 @@ def dashboard(request):
     )
 
 
-@staff_required
+@superuser_required
 @require_http_methods(["GET", "POST"])
 def invites(request):
     form = InviteCreateForm(request.POST or None)
@@ -208,7 +222,7 @@ def invites(request):
     )
 
 
-@staff_required
+@superuser_required
 @require_POST
 def invite_revoke(request, pk):
     invite = get_object_or_404(EditorInvite, pk=pk)

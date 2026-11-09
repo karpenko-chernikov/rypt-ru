@@ -37,21 +37,25 @@ _IMAGE_SAVE_FORMATS = set(_IMAGE_FORMAT_EXT)
 
 
 def client_ip(request) -> str:
-    """IP клиента. X-Forwarded-For доверяем только за прокси (USE_X_FORWARDED_HOST)."""
-    if getattr(settings, "USE_X_FORWARDED_HOST", False):
-        forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        if forwarded:
-            return forwarded.split(",")[0].strip() or "unknown"
+    """IP клиента. За прокси (TRUST_PROXY_HEADERS) берём X-Real-IP:
+    Nginx затирает этот заголовок значением $remote_addr."""
+    if getattr(settings, "TRUST_PROXY_HEADERS", False):
+        return request.META.get("HTTP_X_REAL_IP") or request.META.get("REMOTE_ADDR") or "unknown"
     return request.META.get("REMOTE_ADDR") or "unknown"
 
 
 def throttle(key: str, *, limit: int, window: int = 3600) -> bool:
-    """True если лимит превышен. Счётчик в cache (в проде — общий бэкенд)."""
-    n = cache.get(key, 0)
-    if n >= limit:
-        return True
-    cache.set(key, n + 1, window)
-    return False
+    """True если лимит превышен. Атомарные add/incr, чтобы гонки не
+    завышали счётчик (LocMemCache потокобезопасен; общий он при одном worker)."""
+    if cache.add(key, 1, window):
+        return False
+    try:
+        n = cache.incr(key)
+    except ValueError:
+        # Ключ истёк между add и incr — начинаем окно заново.
+        cache.set(key, 1, window)
+        n = 1
+    return n > limit
 
 
 def safe_redirect_url(request, candidate: str | None, fallback: str = "editor:dashboard") -> str:

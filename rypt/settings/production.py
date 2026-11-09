@@ -57,6 +57,8 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Хост берём из канонического заголовка Host, который выставляет Nginx.
 # Клиентский X-Forwarded-Host игнорируем — иначе он подменяет get_host().
 USE_X_FORWARDED_HOST = False
+# IP клиента берём из X-Real-IP, который Nginx затирает значением $remote_addr.
+TRUST_PROXY_HEADERS = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

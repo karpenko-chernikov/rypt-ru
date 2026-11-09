@@ -43,6 +43,21 @@
 
 .editor-nav a:hover { opacity: 1; }
 
+.editor-logout-form { display: inline; }
+
+.editor-logout-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+.editor-logout-btn:hover { opacity: 1; }
+
 .editor-user {
     color: var(--muted, rgba(255,255,255,0.52));
 }

@@ -20,4 +20,18 @@ def staff_required(view):
     return wrapped
 
 
+def superuser_required(view):
+    """Действия уровня администратора (например, приглашения) — только superuser."""
+
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path(), login_url="editor:login")
+        if not request.user.is_superuser:
+            return HttpResponseForbidden("Нужны права администратора.")
+        return view(request, *args, **kwargs)
+
+    return wrapped
+
+
 editor_required = staff_required
