@@ -25,9 +25,6 @@ class Config:
         self.db_path = os.environ.get("TG_DB_PATH", "./data/reader.db")
         self.media_dir = os.environ.get("TG_MEDIA_DIR", "./data/media")
 
-        # Where Telegram Desktop chat-export folders (ChatExport_...) live.
-        self.export_dir = os.environ.get("TG_EXPORT_DIR", "./exports")
-
         # Tuning.
         self.poll_timeout = _int("TG_POLL_TIMEOUT", 25)
         self.sync_interval = _int("TG_SYNC_INTERVAL", 60)

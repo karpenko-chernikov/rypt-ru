@@ -53,11 +53,6 @@ Authorization: Bearer <TG_READER_TOKEN>
 - `GET /api/posts?after=<message_id>&limit=<n>` — posts with id greater than
   `after`, ascending. `limit` defaults to 100, max 500. Response:
   `{"channel": ..., "posts": [...], "next": <last id or after>}`.
-- `POST /api/import?folder=<name>` — import a Telegram Desktop chat-export
-  folder (`ChatExport_...`) into the same post list. The folder is looked up
-  inside `TG_EXPORT_DIR` (default `./exports`), falling back to a path relative
-  to the working directory; an absolute path also works. Media files are copied
-  into `TG_MEDIA_DIR`. Response: `{"imported": <n>, "folder": ..., "channel": ...}`.
 - `GET /media/<file>` — a downloaded photo/video. `url` in each attachment is
   relative to this endpoint.
 - `GET /healthz` — liveness check (no auth).

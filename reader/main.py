@@ -2,13 +2,12 @@
 
 The website (running in Russia) pulls posts via ``GET /api/posts`` and media via
 ``GET /media/<file>``. Every request must carry a bearer token in the
-``Authorization`` header when ``TG_READER_TOKEN`` is set.
+``Authorization`` header.
 """
 
 import asyncio
 import contextlib
 import hmac
-import json
 import os
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
@@ -25,7 +24,7 @@ syncer = Syncer()
 
 def _authorize(authorization: str = Header(default="")):
     if not cfg.token:
-        return
+        raise HTTPException(status_code=503, detail="Reader token not configured")
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Unauthorized")
     supplied = authorization[len("Bearer "):]
@@ -38,12 +37,14 @@ async def _sync_loop():
         try:
             await syncer.run_once()
         except Exception as exc:  # pragma: no cover - keep the API alive
-            print(f"[telegram-reader] sync error: {exc!r}", flush=True)
+            print(f"[telegram-reader] sync error: {type(exc).__name__}: {exc}", flush=True)
             await asyncio.sleep(cfg.sync_interval)
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
+    if not cfg.token:
+        raise RuntimeError("TG_READER_TOKEN is required")
     task = asyncio.create_task(_sync_loop())
     yield
     task.cancel()
@@ -67,23 +68,10 @@ def list_posts(after: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=500
     return {"channel": cfg.channel, "posts": items, "next": next_cursor}
 
 
-@app.post("/api/import", dependencies=[Depends(_authorize)])
-def import_export(folder: str = Query(..., description="ChatExport_... folder name or path")):
-    """Import a Telegram Desktop chat-export folder into the post list."""
-    from . import importer
-
-    try:
-        return importer.import_folder(folder)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
-    except (json.JSONDecodeError, ValueError) as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-
-
 @app.get("/media/{path:path}", dependencies=[Depends(_authorize)])
 def get_media(path: str):
-    base = os.path.abspath(cfg.media_dir)
-    target = os.path.abspath(os.path.join(base, path))
+    base = os.path.realpath(cfg.media_dir)
+    target = os.path.realpath(os.path.join(base, path))
     if not (target == base or target.startswith(base + os.sep)):
         raise HTTPException(status_code=400, detail="Bad path")
     if not os.path.isfile(target):

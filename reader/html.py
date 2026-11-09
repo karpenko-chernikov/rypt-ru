@@ -12,8 +12,21 @@ codepoint indices before building tags (important for emoji-heavy posts).
 import bisect
 import html as _html
 import re
+import urllib.parse
 
 _URL_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://")
+_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+_ALLOWED_SCHEMES = {"http", "https", "mailto"}
+
+
+def _safe_url(url):
+    """Return ``url`` if its scheme is safe, else ``None``."""
+    url = (url or "").strip()
+    if not url:
+        return None
+    if urllib.parse.urlparse(url).scheme.lower() not in _ALLOWED_SCHEMES:
+        return None
+    return url
 
 
 def _entity_tags(entity, text):
@@ -23,9 +36,19 @@ def _entity_tags(entity, text):
     if etype == "italic":
         return "<i>", "</i>"
     if etype == "text_link":
-        return f'<a href="{_html.escape(entity.get("url") or "", quote=True)}">', "</a>"
+        url = _safe_url(entity.get("url"))
+        if not url:
+            return None, None
+        return f'<a href="{_html.escape(url, quote=True)}">', "</a>"
     if etype == "url":
-        url = text if _URL_RE.match(text) else "https://" + text
+        if _URL_RE.match(text):
+            url = _safe_url(text)
+            if not url:
+                return None, None
+        elif _SCHEME_RE.match(text):
+            return None, None  # scheme-like but unsafe (e.g. javascript:)
+        else:
+            url = "https://" + text
         return f'<a href="{_html.escape(url, quote=True)}">', "</a>"
     if etype == "mention":
         username = text.lstrip("@")

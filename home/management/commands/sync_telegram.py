@@ -9,7 +9,7 @@ Usage:
 
 Environment:
     TG_READER_URL    https://tg-reader.example.com   (required)
-    TG_READER_TOKEN  bearer token shared with reader  (optional if reader open)
+    TG_READER_TOKEN  bearer token shared with reader  (required)
     TG_CHANNEL       channel username, e.g. mychannel (optional; cached in state)
 
 Значения берутся из окружения, а при его отсутствии — из файла ``.env``
@@ -31,11 +31,14 @@ from django.core.files.images import ImageFile
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
+from home.html_sanitize import sanitize_limited_html
 from home.models import NewsAttachment, NewsIndexPage, NewsPage, NewsSyncState
 from wagtail.images.models import Image as WagtailImage
 
 LIMIT = 100
 MAX_ITERATIONS = 1000
+MAX_MEDIA = 50 * 1024 * 1024  # 50 MiB
+ALLOWED_VIDEO_EXT = {".mp4", ".mov", ".webm"}
 _TAG_RE = re.compile(r"<[^>]+>")
 _SPACE_RE = re.compile(r"\s+")
 
@@ -114,7 +117,13 @@ class Command(BaseCommand):
         req = urllib.request.Request(url, headers=self._headers(token))
         try:
             with urllib.request.urlopen(req, timeout=120) as resp:
-                return resp.read()
+                length = resp.headers.get("Content-Length")
+                if length and length.isdigit() and int(length) > MAX_MEDIA:
+                    raise CommandError("Медиафайл слишком большой.")
+                data = resp.read()
+                if len(data) > MAX_MEDIA:
+                    raise CommandError("Медиафайл слишком большой.")
+                return data
         except urllib.error.HTTPError as exc:
             raise CommandError(f"Не удалось скачать медиа ({exc.code}).") from exc
         except urllib.error.URLError as exc:
@@ -127,6 +136,9 @@ class Command(BaseCommand):
             raise CommandError("Не задан TG_READER_URL.")
 
         token = _cfg("TG_READER_TOKEN")
+        if not token:
+            raise CommandError("Не задан TG_READER_TOKEN.")
+
         state = NewsSyncState.get()
 
         channel = _cfg("TG_CHANNEL")
@@ -146,6 +158,11 @@ class Command(BaseCommand):
         while True:
             url = f"{base}/api/posts?after={cursor}&limit={LIMIT}"
             payload = self._fetch_json(url, token)
+            payload_channel = (payload.get("channel") or "").strip()
+            if payload_channel and state.channel and payload_channel != state.channel:
+                raise CommandError(
+                    f"Reader вернул канал {payload_channel!r}, ожидался {state.channel!r}."
+                )
             posts = payload.get("posts") or []
             if not posts:
                 break
@@ -173,7 +190,7 @@ class Command(BaseCommand):
         )
 
     def _create_post(self, news_index, channel, post, base, token):
-        text_html = post.get("text_html") or ""
+        text_html = sanitize_limited_html(post.get("text_html") or "")
         title = _short_title(text_html) or f"Новость от {_to_date(post.get('date')).strftime('%d.%m.%Y')}"
 
         page = NewsPage(
@@ -188,17 +205,21 @@ class Command(BaseCommand):
         for att in post.get("attachments") or []:
             self._create_attachment(page, att, base, token)
 
-        page.save_revision().publish()
+        page.save_revision()
 
     def _create_attachment(self, page, att, base, token):
         url = att.get("url") or ""
         if not url:
             return
         name = os.path.basename(urllib.parse.urlparse(url).path) or "file"
-        data = self._fetch_bytes(f"{base}/media/{urllib.parse.quote(url)}", token)
         original_url = att.get("original_url") or ""
+        if urllib.parse.urlparse(original_url).scheme not in {"http", "https"}:
+            original_url = ""
 
         if att.get("kind") == "video":
+            if os.path.splitext(name.lower())[1] not in ALLOWED_VIDEO_EXT:
+                return
+            data = self._fetch_bytes(f"{base}/media/{urllib.parse.quote(url)}", token)
             item = NewsAttachment(
                 page=page,
                 kind=NewsAttachment.KIND_VIDEO,
@@ -206,6 +227,7 @@ class Command(BaseCommand):
             )
             item.video_file.save(name, ContentFile(data), save=True)
         else:
+            data = self._fetch_bytes(f"{base}/media/{urllib.parse.quote(url)}", token)
             image = WagtailImage(title=name)
             image.file.save(name, ImageFile(BytesIO(data), name=name), save=True)
             NewsAttachment.objects.create(
