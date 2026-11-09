@@ -23,7 +23,7 @@ class EditorChangeLogAdmin(admin.ModelAdmin):
 
 @admin.register(EditorInvite)
 class EditorInviteAdmin(admin.ModelAdmin):
-    list_display = ("code", "note", "created_by", "created_at", "expires_at", "used_at", "revoked")
+    list_display = ("code_hash", "note", "created_by", "created_at", "expires_at", "used_at", "revoked")
     list_filter = ("revoked",)
-    search_fields = ("code", "note")
-    readonly_fields = ("code", "created_at", "used_at", "used_by")
+    search_fields = ("code_hash", "note")
+    readonly_fields = ("code_hash", "created_at", "used_at", "used_by")

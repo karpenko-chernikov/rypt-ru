@@ -39,3 +39,16 @@ wheels/
 *.egg
 
 reader/ChatExport_*
+
+# Секреты / VCS / runtime-данные не должны попадать в образ.
+.git
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+data/
+reader/data/
+reader/exports/
+*.pem
+*password*.txt

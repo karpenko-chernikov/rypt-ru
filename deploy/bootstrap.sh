@@ -158,27 +158,9 @@ chown -R rypt:www-data /var/lib/rypt/media
 echo "==> applying migrations (runtime user)"
 run_runtime "$REL/.venv/bin/python" "$REL/manage.py" migrate --noinput
 
-if [[ ! -f /root/rypt-editor-password.txt ]]; then
-  pass=$(python3 -c "import secrets; print(secrets.token_urlsafe(12))")
-  run_runtime "$REL/.venv/bin/python" - <<PY
-import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rypt.settings.production")
-from django.contrib.auth import get_user_model
-User = get_user_model()
-password = "${pass}"
-u, created = User.objects.get_or_create(
-    username="redaktor",
-    defaults={"email": "redaktor@rypt.folomin.com", "is_staff": True, "is_superuser": True},
-)
-u.set_password(password)
-u.is_staff = True
-u.is_superuser = True
-u.save()
-print("editor user ready")
-PY
-  printf '%s\n' "$pass" >/root/rypt-editor-password.txt
-  chmod 600 /root/rypt-editor-password.txt
-fi
+# Аккаунты редакторов создаются только через одноразовые приглашения
+# (manage.py create_editor_invite / интерфейс приглашений). Автосоздание
+# общего superuser удалено.
 
 # --- атомарное переключение и установка unit/nginx из проверенного релиза ---
 echo "==> switching release"

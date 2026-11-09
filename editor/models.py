@@ -68,7 +68,7 @@ class EditorChangeLog(models.Model):
 
 
 class EditorInvite(models.Model):
-    code = models.CharField("Код", max_length=64, unique=True, db_index=True)
+    code_hash = models.CharField("Хэш кода", max_length=64, unique=True, db_index=True)
     note = models.CharField("Заметка", max_length=200, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -97,7 +97,7 @@ class EditorInvite(models.Model):
         verbose_name_plural = "Приглашения редакторов"
 
     def __str__(self):
-        return self.code
+        return self.code_hash
 
     @property
     def is_usable(self) -> bool:

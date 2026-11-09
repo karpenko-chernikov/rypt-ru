@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import secrets
 from io import BytesIO
@@ -75,6 +76,11 @@ def constant_time_equals(a: str, b: str) -> bool:
 
 def invite_code() -> str:
     return secrets.token_urlsafe(24)
+
+
+def hash_invite_code(code: str) -> str:
+    """Храним только SHA-256 код приглашения; исходный код — только в URL."""
+    return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
 
 def validate_public_http_url(value: str, *, field_name: str = "Ссылка") -> str:

@@ -9,6 +9,7 @@ from django.db import IntegrityError, transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 from wagtail.images.models import Image
 
@@ -32,7 +33,13 @@ from editor.forms import (
     SeasonMetaForm,
 )
 from editor.models import EditorChangeLog, EditorInvite
-from editor.security import client_ip, invite_code, safe_redirect_url, throttle
+from editor.security import (
+    client_ip,
+    hash_invite_code,
+    invite_code,
+    safe_redirect_url,
+    throttle,
+)
 from editor.services import (
     archive_current,
     create_season,
@@ -109,9 +116,10 @@ def logout_view(request):
     return redirect("editor:login")
 
 
+@never_cache
 def register_view(request, code):
     """Регистрация только по одноразовому приглашению."""
-    invite = EditorInvite.objects.filter(code=code).first()
+    invite = EditorInvite.objects.filter(code_hash=hash_invite_code(code)).first()
     if not invite or not invite.is_usable:
         raise Http404()
     if user_is_editor(request.user):
@@ -172,6 +180,7 @@ def dashboard(request):
 
 @superuser_required
 @require_http_methods(["GET", "POST"])
+@never_cache
 def invites(request):
     form = InviteCreateForm(request.POST or None)
     created_url = None
@@ -181,14 +190,15 @@ def invites(request):
             messages.error(request, "Слишком много приглашений за час.")
         else:
             days = form.cleaned_data["days_valid"]
+            raw_code = invite_code()
             invite = EditorInvite.objects.create(
-                code=invite_code(),
+                code_hash=hash_invite_code(raw_code),
                 note=form.cleaned_data.get("note") or "",
                 created_by=request.user,
                 expires_at=timezone.now() + timedelta(days=days),
             )
             created_url = request.build_absolute_uri(
-                f"/dlya-redaktorov/priglashenie/{invite.code}/"
+                f"/dlya-redaktorov/priglashenie/{raw_code}/"
             )
             log_change(
                 user=request.user,
@@ -197,7 +207,7 @@ def invites(request):
                 + (f" ({invite.note})" if invite.note else ""),
                 object_type="invite",
                 object_id=invite.pk,
-                object_label=invite.code[:12] + "…",
+                object_label=invite.code_hash[:12] + "…",
                 payload={"days": days, "note": invite.note},
             )
             messages.success(request, "Одноразовая ссылка создана. Передайте её лично.")
@@ -237,7 +247,7 @@ def invite_revoke(request, pk):
             summary="Приглашение отозвано",
             object_type="invite",
             object_id=invite.pk,
-            object_label=invite.code[:12] + "…",
+            object_label=invite.code_hash[:12] + "…",
         )
         messages.success(request, "Приглашение отозвано.")
     return redirect("editor:invites")
