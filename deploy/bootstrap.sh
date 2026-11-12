@@ -56,16 +56,16 @@ if [[ ! -f /etc/rypt.env ]]; then
   key=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
   cat >/etc/rypt.env <<EOF
 DJANGO_SECRET_KEY=${key}
-ALLOWED_HOSTS=rypt.folomin.com
-WAGTAILADMIN_BASE_URL=https://rypt.folomin.com
+ALLOWED_HOSTS=rosypt.ru
+WAGTAILADMIN_BASE_URL=https://rosypt.ru
 EOF
 fi
 # Дописываем недостающие переменные (нужно при первом переезде и защищает
 # от случайного удаления строки в /etc/rypt.env).
 {
   grep -q '^DJANGO_SECRET_KEY=' /etc/rypt.env || echo "DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')"
-  grep -q '^ALLOWED_HOSTS=' /etc/rypt.env || echo 'ALLOWED_HOSTS=rypt.folomin.com'
-  grep -q '^WAGTAILADMIN_BASE_URL=' /etc/rypt.env || echo 'WAGTAILADMIN_BASE_URL=https://rypt.folomin.com'
+  grep -q '^ALLOWED_HOSTS=' /etc/rypt.env || echo 'ALLOWED_HOSTS=rosypt.ru'
+  grep -q '^WAGTAILADMIN_BASE_URL=' /etc/rypt.env || echo 'WAGTAILADMIN_BASE_URL=https://rosypt.ru'
   grep -q '^DATABASE_PATH=' /etc/rypt.env || echo 'DATABASE_PATH=/var/lib/rypt/db/db.sqlite3'
   grep -q '^MEDIA_ROOT='    /etc/rypt.env || echo 'MEDIA_ROOT=/var/lib/rypt/media'
   grep -q '^STATIC_ROOT='   /etc/rypt.env || echo 'STATIC_ROOT=/srv/rypt/current/static'
@@ -183,16 +183,29 @@ systemctl restart nginx
 
 # Let's Encrypt: может упасть, пока включён прокси Cloudflare; сайт всё равно
 # работает через HTTPS Cloudflare.
-certbot --nginx -d rypt.folomin.com --non-interactive --agree-tos \
+certbot --nginx -d rosypt.ru --non-interactive --agree-tos \
   --register-unsafely-without-email --redirect || true
 
 # certbot --nginx может переписать server-блоки и вернуть редирект/заголовки
 # к $host. Проверяем канонические директивы из deploy/nginx-rypt.conf и, если
 # certbot их затёр, переустанавливаем конфиг из release-дерева.
-if ! grep -q "proxy_set_header Host rypt.folomin.com" /etc/nginx/sites-enabled/rypt \
-   || ! grep -q "proxy_set_header X-Forwarded-Host rypt.folomin.com" /etc/nginx/sites-enabled/rypt \
+if ! grep -q "proxy_set_header Host rosypt.ru" /etc/nginx/sites-enabled/rypt \
+   || ! grep -q "proxy_set_header X-Forwarded-Host rosypt.ru" /etc/nginx/sites-enabled/rypt \
    || ! grep -q "return 444" /etc/nginx/sites-enabled/rypt; then
   install -o root -g root -m 0644 "$REL/deploy/nginx-rypt.conf" /etc/nginx/sites-available/rypt
+  nginx -t
+  systemctl reload nginx
+fi
+
+# admin.rosypt.ru -> Wagtail /redaktura/ (redirect). Получаем сертификат до
+# включения server-блока: иначе nginx -t упадёт на отсутствующих файлах
+# /etc/letsencrypt/live/admin.rosypt.ru/. Webroot-челлендж обслуживается
+# дефолтным блоком порта 80 (root /var/www/html).
+certbot certonly --webroot -w /var/www/html -d admin.rosypt.ru \
+  --non-interactive --agree-tos --register-unsafely-without-email || true
+if [[ -f /etc/letsencrypt/live/admin.rosypt.ru/fullchain.pem ]]; then
+  install -o root -g root -m 0644 "$REL/deploy/nginx-admin.conf" /etc/nginx/sites-available/admin
+  ln -sfn /etc/nginx/sites-available/admin /etc/nginx/sites-enabled/admin
   nginx -t
   systemctl reload nginx
 fi

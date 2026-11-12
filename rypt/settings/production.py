@@ -46,7 +46,7 @@ CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 
 WAGTAILADMIN_BASE_URL = os.environ.get(
     "WAGTAILADMIN_BASE_URL",
-    "https://rypt.folomin.com",
+    "https://rosypt.ru",
 )
 
 # Разрешить Wagtail-админку /redaktura/ вне DEBUG (например, на staging).

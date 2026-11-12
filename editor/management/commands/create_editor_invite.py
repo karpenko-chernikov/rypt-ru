@@ -18,7 +18,7 @@ class Command(BaseCommand):
         parser.add_argument("--note", default="", help="Заметка")
         parser.add_argument(
             "--base-url",
-            default="https://rypt.folomin.com",
+            default="https://rosypt.ru",
             help="Базовый URL сайта для печати полной ссылки",
         )
 

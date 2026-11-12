@@ -50,7 +50,7 @@ USER wagtail
 # ALLOWED_HOSTS; here they are throwaway values valid only for this build step.
 # STATIC_ROOT points to a path writable by the "wagtail" user inside the image.
 RUN DJANGO_SECRET_KEY=build-time-only-placeholder-key-not-a-secret \
-    ALLOWED_HOSTS=rypt.folomin.com \
+    ALLOWED_HOSTS=rosypt.ru \
     STATIC_ROOT=/app/static \
     python manage.py collectstatic --noinput --clear
 

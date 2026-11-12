@@ -59,7 +59,7 @@ certbot --nginx -d analytics.example.com --non-interactive --agree-tos --registe
 ## Работа без домена
 
 Отдельный домен не обязателен. Но скрипт трекинга должен отдаваться по HTTPS:
-на боевом `https://rypt.folomin.com` браузер заблокирует HTTP-скрипт как mixed content.
+на боевом `https://rosypt.ru` браузер заблокирует HTTP-скрипт как mixed content.
 
 ### Доступ в админку Umami
 
@@ -91,7 +91,7 @@ ssh -L 3000:127.0.0.1:3000 user@server
 2. Войти по умолчанию: логин `admin`, пароль `umami`.
 3. Сразу сменить пароль: **Settings → Profile**.
 4. **Settings → Websites → Add website**: ввести имя (например `RYPT`) и домен
-   `rypt.folomin.com`. Можно не указывать домен — тогда трекинг работает с любого
+   `rosypt.ru`. Можно не указывать домен — тогда трекинг работает с любого
    сайта, где подключён скрипт.
 5. Скопировать **Website ID** (UUID) созданного сайта.
 
@@ -102,7 +102,7 @@ ssh -L 3000:127.0.0.1:3000 user@server
 ```
 UMAMI_SCRIPT_URL=https://analytics.example.com/script.js
 UMAMI_WEBSITE_ID=<скопированный Website ID>
-# UMAMI_DOMAINS=rypt.folomin.com
+# UMAMI_DOMAINS=rosypt.ru
 ```
 
 Затем:

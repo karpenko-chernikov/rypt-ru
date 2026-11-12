@@ -6,7 +6,7 @@
 
 | | URL |
 |--|-----|
-| Сайт (черновик для коллег) | https://rypt.folomin.com |
+| Сайт (черновик для коллег) | https://rosypt.ru |
 | Кабинет редакторов | https://rypt.folomin.com/dlya-redaktorov/vhod/ |
 
 Боевой `rypt.ru` — после согласия Ивана. Этот репозиторий — **код**; контент и пользователи живут на сервере, не в Git. Админка Wagtail (`/redaktura/`) на сайте **недоступна** — всё редактирование через кабинет.
@@ -149,7 +149,7 @@ setpriv --reuid=rypt --regid=rypt --init-groups -- bash -c '
 
 Production-запуск **fail-closed**: без `DJANGO_SECRET_KEY` и явного непустого
 `ALLOWED_HOSTS` (без `*`) сервис не стартует. На прокси Nginx `Host` и
-`X-Forwarded-Host` приводятся к каноническому `rypt.folomin.com`, неизвестные
+`X-Forwarded-Host` приводятся к каноническому `rosypt.ru`, неизвестные
 хосты отбрасываются (`return 444`).
 
 Чтобы открыть Wagtail-админку `/redaktura/` на staging (вне `DEBUG`), добавьте
