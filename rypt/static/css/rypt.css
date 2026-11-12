@@ -2116,6 +2116,18 @@ main {
     overflow-wrap: anywhere;
 }
 
+.contact-method-value a {
+    color: var(--gold);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--gold) 55%, transparent);
+    text-underline-offset: 0.15em;
+}
+
+.contact-method-value a:hover,
+.contact-method-value a:focus-visible {
+    text-decoration-color: var(--gold);
+}
+
 .contacts-empty {
     color: var(--muted);
 }

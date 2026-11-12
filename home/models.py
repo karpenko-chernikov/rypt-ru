@@ -676,10 +676,18 @@ class ContactsPage(Page):
                 continue
             contacts = []
             for contact in block.value.get("contacts") or []:
-                methods = [
-                    {"type": method.get("type", ""), "value": method.get("value", "")}
-                    for method in contact.get("methods") or []
-                ]
+                methods = []
+                for method in contact.get("methods") or []:
+                    value = method.get("value", "")
+                    methods.append(
+                        {
+                            "type": method.get("type", ""),
+                            "value": value,
+                            "is_link": value.lower().startswith(
+                                ("http://", "https://")
+                            ),
+                        }
+                    )
                 photo = contact.get("photo")
                 contacts.append(
                     {

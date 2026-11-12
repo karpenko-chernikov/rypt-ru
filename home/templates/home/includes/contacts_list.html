@@ -20,7 +20,13 @@
                                     {% for method in contact.methods %}
                                         <div class="contact-method">
                                             <dt class="contact-method-type">{{ method.type }}</dt>
-                                            <dd class="contact-method-value">{{ method.value }}</dd>
+                                            <dd class="contact-method-value">
+                                                {% if method.is_link %}
+                                                    <a href="{{ method.value }}" rel="noreferrer">{{ method.value }}</a>
+                                                {% else %}
+                                                    {{ method.value }}
+                                                {% endif %}
+                                            </dd>
                                         </div>
                                     {% endfor %}
                                 </dl>
