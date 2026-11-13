@@ -6,8 +6,10 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from modelcluster.fields import ParentalKey
@@ -1663,3 +1665,13 @@ class TrainingBoardPage(Page):
 
         card.delete()
         return redirect(f"{self.get_url(request)}?deleted=1")
+
+
+@receiver(post_save, sender=TrainingBoardCard)
+def _notify_training_board_card_created(sender, instance, created, **kwargs):
+    """Уведомить администраторов о новой заявке после фактического коммита."""
+    if not created:
+        return
+    from home.notifications import notify_training_board_card
+
+    transaction.on_commit(lambda: notify_training_board_card(instance))

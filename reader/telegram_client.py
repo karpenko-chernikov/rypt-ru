@@ -65,6 +65,22 @@ class TelegramBot:
             raise RuntimeError(f"getUpdates failed: {data}")
         return data
 
+    async def send_message(self, chat_id, text):
+        """Send a plain-text message to a chat (admin notifications)."""
+        resp = await self._request(
+            "POST",
+            f"/bot{self.token}/sendMessage",
+            json={
+                "chat_id": chat_id,
+                "text": text,
+                "disable_web_page_preview": True,
+            },
+        )
+        data = resp.json()
+        if not data.get("ok"):
+            raise RuntimeError("sendMessage failed")
+        return data["result"]
+
     async def get_file_info(self, file_id):
         resp = await self._request(
             "POST",

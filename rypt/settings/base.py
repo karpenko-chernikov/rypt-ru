@@ -209,6 +209,12 @@ UMAMI_SCRIPT_URL = os.environ.get("UMAMI_SCRIPT_URL", "").strip()
 UMAMI_WEBSITE_ID = os.environ.get("UMAMI_WEBSITE_ID", "").strip()
 UMAMI_DOMAINS = os.environ.get("UMAMI_DOMAINS", "").strip()
 
+# Telegram reader: источник постов и канал уведомлений администраторов.
+# Пустые значения = уведомления о заявках на «Доске» выключены.
+TG_READER_URL = os.environ.get("TG_READER_URL", "").strip()
+TG_READER_TOKEN = os.environ.get("TG_READER_TOKEN", "").strip()
+TG_NOTIFY_TIMEOUT = 10
+
 # Кабинет: регистрация только по одноразовым приглашениям
 # (python manage.py create_editor_invite)
 LOGIN_URL = "editor:login"

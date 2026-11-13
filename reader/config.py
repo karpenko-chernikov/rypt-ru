@@ -18,6 +18,10 @@ class Config:
         self.api_base = os.environ.get("TG_API_BASE", "https://api.telegram.org").rstrip("/")
         self.channel = os.environ.get("TG_CHANNEL", "")
 
+        # Admin chat where the website sends training-board notifications.
+        # Usually a private group chat id, e.g. -1001234567890.
+        self.admin_chat_id = os.environ.get("TG_ADMIN_CHAT_ID", "").strip()
+
         # Auth token the website must send in the Authorization header.
         self.token = os.environ.get("TG_READER_TOKEN", "")
 

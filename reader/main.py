@@ -12,6 +12,7 @@ import os
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
 from . import config
 from .store import Store
@@ -58,6 +59,21 @@ app = FastAPI(title="Telegram reader", version="1.0.0", lifespan=lifespan)
 
 @app.get("/healthz")
 def healthz():
+    return {"ok": True}
+
+
+class NotifyPayload(BaseModel):
+    text: str = Field(..., min_length=1, max_length=4096)
+
+
+@app.post("/api/notify", dependencies=[Depends(_authorize)])
+async def notify(payload: NotifyPayload):
+    if not cfg.admin_chat_id:
+        raise HTTPException(status_code=503, detail="Admin chat not configured")
+    try:
+        await syncer.bot.send_message(cfg.admin_chat_id, payload.text)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail="Telegram send failed") from exc
     return {"ok": True}
 
 

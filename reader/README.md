@@ -55,6 +55,9 @@ Authorization: Bearer <TG_READER_TOKEN>
   `{"channel": ..., "posts": [...], "next": <last id or after>}`.
 - `GET /media/<file>` — a downloaded photo/video. `url` in each attachment is
   relative to this endpoint.
+- `POST /api/notify` — send a plain-text message to the admin chat configured
+  in `TG_ADMIN_CHAT_ID`. Body: `{"text": "..."}` (1..4096 chars). The bot must
+  be a member of that chat and allowed to post there.
 - `GET /healthz` — liveness check (no auth).
 
 Attachment shape:
